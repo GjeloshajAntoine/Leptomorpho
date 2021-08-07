@@ -6,11 +6,16 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GjeloshajAntoine/Leptomorpho.git"
+  },
   "keywords": [
     "ui",
     "component",
     "small"
   ],
   "author": "Antoine Gjeloshaj",
-  "license": "MIT"
+  "license": "MIT",
+  "homepage": "https://github.com/GjeloshajAntoine/Leptomorpho"
 }
