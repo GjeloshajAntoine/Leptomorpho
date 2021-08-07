@@ -1,0 +1,16 @@
+{
+  "name": "leptomorpho",
+  "version": "0.0.1",
+  "description": "UI components aimed to remain small in size and layout.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ui",
+    "component",
+    "small"
+  ],
+  "author": "Antoine Gjeloshaj",
+  "license": "MIT"
+}
