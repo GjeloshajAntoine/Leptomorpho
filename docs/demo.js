@@ -19,8 +19,15 @@ const StyledButton = styled.button`
   &:active {
     // transform: rotateY(15deg) rotateX(15deg);
     // transform: rotate3d(0, 15, 0, 1deg);
+    background: linear-gradient(
+        0deg,
+        rgb(191 191 191 / 44%) 0%,
+        rgb(197 197 197 / 0%) 100%
+      );
+    backdrop-filter: hue-rotate(174deg) invert(70%);
+
     &:before {
-      content: "";
+      /* content: ""; */
       position: absolute;
       /* background-color: rgb(255 255 255 / 0%); */
       background: linear-gradient(
