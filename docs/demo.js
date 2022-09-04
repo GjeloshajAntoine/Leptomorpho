@@ -1,4 +1,4 @@
-import React, { createElement, Component, useState, useMemo,useRef, useEffect } from "https://cdn.skypack.dev/react";
+import React, { createElement, Component, useState, useMemo,useRef, useEffect, useCallback } from "https://cdn.skypack.dev/react";
 import { render } from "https://cdn.skypack.dev/react-dom";
 import htm from "https://cdn.skypack.dev/htm";
 import styled, { createGlobalStyle } from "https://cdn.skypack.dev/styled-components";
@@ -10,6 +10,9 @@ import useWindowSize from 'https://cdn.skypack.dev/@rehooks/window-size';
 import useOnclickOutside from 'https://cdn.skypack.dev/react-cool-onclickoutside';
 import hotkeys from 'https://cdn.skypack.dev/hotkeys-js';
 
+
+mobileConsole.show()
+
 // const html = htm.bind((type,props,...children)=>{/*console.log(type);*/return createElement(type,props,...children)});
 const html = htm.bind(createElement);
 
@@ -19,6 +22,7 @@ const TheHTML = createGlobalStyle`
     position: fixed;
     overflow: hidden;
     width: 100vw;
+    height: 100vh;
   }
 
 `;
@@ -87,87 +91,22 @@ const StyledDopDownMenu = styled.div`
 const StyledPanel = styled.div`
   position:absolute;
   background-color: white;
-  overflow: hidden;
-  position: fixed;
   z-index: 1;
   top:${({ top }) => top}px;
   left:${({ left }) => left}px;
-  visibility: ${({ visibility }) => visibility ? visibility : 'hidden'};
+  visibility: ${({ visibility }) => visibility ? 'visible' : 'hidden'};
+  width: auto;
 `
 
-
-const FloatingTo = ({ children, to, toComponent, direction }) => {
-  const [props, setProps] = useState({ visibility: 'hidden' })
-  const { innerWidth, innerHeight } = useWindowSize()
-  
-  // useEffect(() => {
-  //   if (!toComponent.getBoundingClientRect) return;
-  //   if(!to.getBoundingClientRect) return;
-
-  //   const { top, bottom, left, right } = to.getBoundingClientRect();
-  //   if (direction === 'vertical') {
-  //     setProps({ top: bottom, left, visibility: 'visible' })
-  //   } else {
-  //     setProps({ top, left: right, visibility: 'visible' })
-  //   } 
-  // }, [children, to, innerWidth, innerHeight])
-
-  // useEffect(async ()=>{
-  //   if(!toComponent?.then) return;
-  //   if(!'then' in to) return;
-
-  //   const ref = await to;
-  //   const { top, bottom, left, right } = ref.getBoundingClientRect();
-  //     if (direction === 'vertical') {
-  //       setProps({ top: bottom, left, visibility: 'visible' })
-  //     } else {
-  //       setProps({ top, left: right, visibility: 'visible' })
-  //     }
-  // }, [children, to, innerWidth, innerHeight])
-
-  useEffect(()=> {
-    const oldRef = toComponent.props.ref;
-    toComponent.props.ref = node=> {
-      if(!node) return;
-      console.log('called ref',node);
-      // oldRef?.props.ref?.(node);
-      const { top, bottom, left, right } = node.getBoundingClientRect();
-      console.log('coord',top, bottom, left, right);
-      console.log('ch',children);
-      if (direction === 'vertical') {
-        setProps({ top: bottom, left, visibility: 'visible' })
-      } else {
-        setProps({ top, left: right, visibility: 'visible' })
-      }
-    }
-  }, [children, to, innerWidth, innerHeight])
- 
-  return React.cloneElement(children, props)
-}
-
-
-const insertCallback = (inserted, origin, elem, instertedFirst = true, ...args) => (evt) => {
-  if (instertedFirst) {
-    inserted?.(evt, elem, ...args);
-    return origin?.(evt, elem, ...args);
-  } else {
-    origin?.(evt, elem)
-    insterted?.(evt, elem)
-  }
-
-}
-const CloneSertCb = (elem, cbProp, ...args) => {
-  const propsInterCB = Object.fromEntries(Object.entries(cbProp).filter(([key,cb])=>typeof cb === "function" && key.startsWith('on')).map(([key, cb]) => [key, insertCallback(cb, elem.props?.[key], elem, true, ...args)]))
-  return React.cloneElement(elem, { ...elem.props,...cbProp, ...propsInterCB }, elem.props.children)
-}
-
 const DropDownMenu = ({ children, className, direction = 'horizontal', openHeaderItemOn = 'click', triggerItemOn = 'MouseUp', search, zIndex }) => {
-  const [openHeader, setOpenHeader] = useState([])//[{openBy:Element,openItems:{_react}]
   const [mouseIsOn, setmouseIsOn] = useState(false);
+  const [openPath, setOpenPath] = useState([])
   const dropDownRef = useRef(null)
+
   useOnclickOutside(() => {
-    setOpenHeader([]) 
-  },{refs:[dropDownRef]});
+    console.log('useOnclickOutside');
+    setOpenPath([]) 
+  },{disabled: !openPath.length ,refs:[dropDownRef]});
 
   useMemo(()=> { 
     hotkeys.unbind(); 
@@ -175,93 +114,91 @@ const DropDownMenu = ({ children, className, direction = 'horizontal', openHeade
     extractPropsChildrenAllLevel.map(({shortCut,onAction})=>hotkeys(shortCut,onAction))
   },[children])
 
-  const onHeaderItemClick = ({ target, type = '', }, Item) => {
-    if(type.startsWith('mouse') && !!('ontouchstart' in window)) return // filter out mouse event in touch context
-    openHeader[0]?.openBy === target && !mouseIsOn ?
-     setOpenHeader([]) : setOpenHeader([{ openBy: target, openings: Item.props.children,Item }]);
+  const onHeaderItemClick = (e, Item,idx) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    openPath[0] === idx && !mouseIsOn ? setOpenPath([]) : setOpenPath([idx])
     setmouseIsOn(true)
-
   }
 
-  const onMouseUpItem = ({ target }, Item) => {
+  const onMouseUpItem = (e, Item, idx, currentPath) => {
+    e.stopPropagation();
+    e.preventDefault();
+
+    const slicedOpenPath = openPath.slice(0,currentPath.length);
     const { props: { children } } = Item
-    children ? setOpenHeader([...openHeader, { openBy: target, openings: children, Item}]) : setOpenHeader([])
+    children ? setOpenPath([...slicedOpenPath,idx]) : setOpenPath([])
     setmouseIsOn(false)
+    Item.props.onAction?.();
   }
 
-  const onHoverItem = ({ target,type,touches,touches:[{clientX,clientY}={}]=[] }, Item, idx) => {
-    console.log('onHoverItem',type);
-    if (!openHeader.length && !mouseIsOn) return;
+  function onMouseOver(e,c,idx,currentPath) {
+    e.stopPropagation()
+    e.preventDefault()
+
+    const slicedOpenPath = openPath.slice(0,currentPath.length);
+    setOpenPath([...slicedOpenPath,idx])
+  }
+
+  const onTouchMoveItem = (e) => {
+    e.stopPropagation()
+    e.preventDefault()
+    const { touches,touches:[{clientX,clientY}={}]=[] } = e;
+
+    if (!openPath.length && !mouseIsOn) return;
     if (touches) {
       const newTarget = document.elementFromPoint(clientX,clientY);
-      return newTarget.dispatchEvent(new Event('mouseover',{bubbles: true,}))
+      newTarget.dispatchEvent(new Event('mouseover',{bubbles: true,}))
     }
-
-    const { props: { children } } = Item
-    children ? setOpenHeader([...openHeader.slice(0, idx + 1), { openBy: target, openings: children,Item }]) : null
   }
-
-  function displayPathOfIndexes(indexes=[]) {
-    const openHeaderState= indexes.reduce((acc,index,idx,here)=>{
-      const Item =  !!idx? Array.from(acc[idx-1].Item.props.children)[index]: Array.from(children)[index];
-      const previousRef = Item.props.ref
-      const refOfOpenerItem = new Promise(resolve=>
-        Item.props.ref = node =>{if(node) resolve(node); previousRef?.(node)}
-      )
-      return [...acc,{openBy:refOfOpenerItem,openings:Item.props.children,Item}];
-      
-    },[])
-    return openHeaderState;
+  
+  const onTouchEndItem = (e) => {
+    const { target, touches,changedTouches:[{clientX,clientY}={}]=[] } = e;
+    
+    const newTarget = document.elementFromPoint(clientX,clientY);
+    if (touches && newTarget !== target) {
+      newTarget.dispatchEvent(new Event('mouseup',{bubbles: true,}))
+    }
   }
 
 
-  useEffect(()=>  setOpenHeader(displayPathOfIndexes([1,5,0,2])),[children])
+  function AddCallBackToItems(children,[pathidx,...restPath],currentPath=[]) {
+
+    const childrenWithCb = children.map((c,idx)=>React.cloneElement(c,{
+      idx,
+      onMouseOver: !!openPath.length ? e=> onMouseOver(e,c,idx,currentPath) : null,
+      onMouseDown : !currentPath.length && !('ontouchstart' in window) ? e => onHeaderItemClick(e,c,idx,currentPath) : e => e.stopPropagation(),
+      onTouchStart: !currentPath.length ? e => onHeaderItemClick(e,c,idx,currentPath, openPath) : e => e.stopPropagation(),
+      onMouseUp: !!currentPath.length ? e=> onMouseUpItem(e,c,idx,currentPath) : ()=> setmouseIsOn(false),
+      onTouchMove: e => onTouchMoveItem(e,c,idx,currentPath),
+      onTouchEnd: e => onTouchEndItem(e,c),
+      isOpen:idx === pathidx,
+      isTopLevel: currentPath.length === 0,
+      ...c.props,
+    },idx === pathidx ? AddCallBackToItems(React.Children.toArray(c.props.children),restPath,[...currentPath,pathidx]) : c.props.children))
+    return childrenWithCb;
+  }
 
   return html`
-    <${StyledDopDownMenu} className=${className} ref=${dropDownRef} direction=${direction} >
-      ${children?.map(HeaderItem => React.cloneElement(HeaderItem, {
-                                                                ...HeaderItem.props,
-                                                                // onTouchStart: (e)=>onHeaderItemClick(e,HeaderItem),
-                                                                // onMouseDown:  (e)=>onHeaderItemClick(e,HeaderItem),
-                                                                onClick:(e)=> onHeaderItemClick(e,HeaderItem),
-                                                                onTouchEnd: () => setmouseIsOn(false),
-                                                                onMouseUp: !('ontouchstart' in window)? () => setmouseIsOn(false):null, 
-                                                                onMouseOver:(e)=>onHoverItem(e,HeaderItem),
-                                                                onTouchMove:(e)=>onHoverItem(e,HeaderItem),
-                                                                isTopLevel:true,
-                                                                isOpen:HeaderItem.props.children === openHeader?.[0]?.openings,
-                                                             
-  },HeaderItem.props.children))}
-
-      ${openHeader.length ? openHeader.map(({ openBy, openings, Item }, idx) =>
-    html`
-        <${FloatingTo} key=${idx} to=${openBy} toComponent=${Item} direction=${!idx && direction == 'horizontal' ? 'vertical' : 'horizontal'}>
-          <${StyledPanel} shift=${idx} style=${{ zIndex }} onDetach=${()=>{}} }>
-            ${React.Children.toArray(openings).map((openItems,oIdx) => React.cloneElement(openItems, { 
-                                                                                                        ...openItems.props,
-                                                                                                        onMouseUp: (e)=>onMouseUpItem(e,openItems,idx), 
-                                                                                                        onMouseOver: (e)=>onHoverItem(e,openItems,idx),
-                                                                                                        onTouchMove:(e)=>onHoverItem(e,openItems,idx), 
-                                                                                                        onTouchEnd: (e)=>onMouseUpItem(e,openItems,idx),
-                                                                                                        key:oIdx,
-                                                                                                        // ref: node =>{console.log('lol',node,openItems.props.ref);openItems.props.ref?.(node)},
-                                                                                                         },openItems.props.children))}
-          </${StyledPanel}>
-        </${FloatingTo}>
-        `)
-      : null}
+    <${StyledDopDownMenu} className=${className} ref=${dropDownRef} direction=${direction}>
+      ${AddCallBackToItems(React.Children.toArray(children),openPath)}
     </${StyledDopDownMenu}>
+  
   `
 }
 
 
 const StyledItem = styled.div`
-  font-size: 12px;
+  font-size: 25px;
   font-family:'-apple-system';
   display: flex;
   width: 100;
   cursor: default;
-  user-select: none;
+  /* user-select: none; */
+  position: relative;
+  white-space: nowrap;
+
   ${({isTopLevel})=>isTopLevel? `
     background-color: #eae7e3;
     width: fit-content; 
@@ -273,11 +210,13 @@ const StyledItem = styled.div`
   `};
   
   filter:${({isOpen})=>isOpen?`invert(100%)`:null}; 
+
   ${({isTopLevel})=>!isTopLevel? `
     &:hover, &:active{
       filter:invert(100%);
     }
   `:null}
+
   gap : 12px;
   gap: 18px;
   &.active {
@@ -285,27 +224,43 @@ const StyledItem = styled.div`
   }
 `
 
-const MenuItem = React.forwardRef(({ name, className, children, isTopLevel,key,shortCut, ...restProps },ref) => {
+const MenuItem = React.forwardRef(({ name, className, children, isTopLevel,key,shortCut,isOpen, ...restProps },refBefore) => {
+  const ref = useRef(null)
+  const [isVisible, setIsVisible] = useState(false)
+
+  useEffect(()=>{
+    setIsVisible(true)
+  },[ref])
+
+  const { top, bottom, height, left, right, width} = ref?.current?.getBoundingClientRect?.() ?? {}
 
   return html`
               <${StyledItem} 
                 className=${className}
                 direction=${isTopLevel ? 'horizontal' : 'vertical'}
+                ...${restProps}
                 ref=${ref}
                 key=${key}
-                ...${restProps}
                 isTopLevel=${isTopLevel}
+                isOpen=${isOpen}
               >
                   ${name ?? null}
                   ${shortCut ? html`<span>${shortCut.replaceAll('+',' ')}</span>` :null}
-                  ${!isTopLevel && children ? html`<${ArrowDropRight} size='12' />`:null}
+                  ${!isTopLevel && children?.length ? html`<${ArrowDropRight} size='12' />`:null}
+                  ${isOpen? 
+                    html`
+                      <${StyledPanel} top=${isTopLevel ? height : undefined} left=${!isTopLevel ? width + 2 : undefined} visibility=${isVisible} >
+                       ${children}
+                      </${StyledPanel}> 
+                    `
+                    : null}
               </${StyledItem}>
               `
 })
 MenuItem.displayName = 'MenuItem'
 
 function MenuSearch() {
-  return html`<input style=${{width:'80%'}} type="text"/>`
+  return html`<input style=${{width:'80%',minWidth:'100px'}} type="text"/>`
 }
 
 const App = () => html`
@@ -325,14 +280,14 @@ const App = () => html`
           </${MenuItem}/>
 
           <${MenuItem} name='Edit'> 
-            <${MenuItem} name="Undo" onAction=${(a)=>console.log('shortcut',a)} shortCut=${'ctrl+z'}/>
+            <${MenuItem} name="Undo" onAction=${(a)=>console.log('shortcut_',a)} shortCut=${'ctrl+z'}/>
             <${MenuItem} name="Redo" />
             <${MenuItem} name="Copy" />
             <${MenuItem} name="Past" />
             <${MenuItem} name="Truc" shortCut="ctrl+truc" />
             <${MenuItem} name="Sub menu" ref=${(node)=>console.log('1st node',node)}> 
               <${MenuItem} name="Sub item A">
-                <${MenuItem} name="Copy" />
+                <${MenuItem} name="Copy" onAction=${()=>console.log('sub copy')} />
                 <${MenuItem} name="Past" />
                 <${MenuItem} name="mais encore">
                   <${MenuItem} name="Past" />
@@ -342,7 +297,7 @@ const App = () => html`
               <${MenuItem} name="Sub item B"/>
             </${MenuItem}>
             <${MenuItem} name="Sub Next"> 
-              <${MenuItem} name="TRUC"/>
+              <${MenuItem} name="TRUC" onAction=${()=>alert('Truc')}/>
               <${MenuItem} name="OPOPO"/>
             </${MenuItem}>
           </${MenuItem}>
@@ -351,9 +306,12 @@ const App = () => html`
             <${MenuItem} name="By List" />
             <${MenuItem} name="By Grid" />
           </${MenuItem}>
-          <${MenuItem} name="help">
+
+          <${MenuItem} name='help'>
+            <${MenuItem} name="By List" />
             <${MenuSearch} />
           </${MenuItem}>
+
         </${DropDownMenu}>
         <br/>
         "test un trc"
@@ -361,4 +319,4 @@ const App = () => html`
       <//>
       `;
 
-render(html`<${App}/>`, document.body);
+render(html`<${App}/>`, document.getElementById('app'));
