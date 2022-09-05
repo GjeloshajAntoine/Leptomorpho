@@ -163,8 +163,16 @@ const DropDownMenu = ({ children, className, direction = 'horizontal', openHeade
   }
 
 
+  useEffect(()=>{
+    if (openPath.length) {
+      window.addEventListener('keydown',onKeydown)
+      return () => window.removeEventListener('keydown',onKeydown)
+    }
+  },[openPath])
+
+
   function AddCallBackToItems(children,[pathidx,...restPath],currentPath=[]) {
-    
+
     const childrenWithCb = children.map((c,idx)=>React.cloneElement(c,{
       idx,
       onMouseOver: !!openPath.length ? e=> onMouseOver(e,c,idx,currentPath) : null,
@@ -180,9 +188,74 @@ const DropDownMenu = ({ children, className, direction = 'horizontal', openHeade
     return childrenWithCb;
   }
 
+  const ChildrenWithCallback = AddCallBackToItems(React.Children.toArray(children),openPath);
+
+  const onKeydown = (e) => {
+    console.log('Key down', e.key);
+    const UpperChildren = children
+    console.log('UpperChildren',UpperChildren);
+    function loopChildren(childs, [pathidx,...restPath]) {
+      if (!restPath.length) {
+        return childs[pathidx].props.children
+      }
+      return loopChildren(childs[pathidx].props.children,restPath)
+    }
+
+    if (e.key === "ArrowDown") {
+      if (openPath.length === 1 && direction === 'horizontal') {
+        setOpenPath([...openPath,0])
+      }
+      if (openPath.length > 1) {
+        const slicedOpenPath = openPath.slice(0,openPath.length - 1)
+        const lastPath  = openPath.pop();
+        const currentChildren = loopChildren(children,slicedOpenPath)
+        currentChildren.length - 1 > lastPath ? setOpenPath([...slicedOpenPath,lastPath + 1]) : setOpenPath([...slicedOpenPath,0])
+
+      }
+    }
+    if (e.key === "ArrowUp" && openPath.length > 1) {
+      const slicedOpenPath = openPath.slice(0,openPath.length - 1)
+      const lastPath  = openPath.pop();
+      const currentChildren = loopChildren(children,slicedOpenPath)
+      if (currentChildren.length) {
+        lastPath === 0 ? setOpenPath([...slicedOpenPath, currentChildren.length - 1]) : setOpenPath([...slicedOpenPath, lastPath - 1])
+        
+      }
+    }
+    if (e.key === "ArrowLeft") {
+      if (openPath.length === 1 && direction === 'horizontal') {
+        0 === openPath[0] ? setOpenPath([children.length - 1]) : setOpenPath([openPath[0] - 1])
+      }
+      if (openPath.length > 1) {
+        setOpenPath(openPath.slice(0,openPath.length - 1))
+        // 0 === openPath[0] ? setOpenPath([children.length - 1]) : setOpenPath([openPath[0] - 1])
+        setOpenPath([...openPath.slice(0,openPath.length - 1)])
+
+      }
+    }   
+    if (e.key === "ArrowRight") {
+      if (openPath.length === 1 && direction === 'horizontal') {
+        children.length - 1 === openPath[0] ? setOpenPath([0]) : setOpenPath([openPath[0] + 1])
+      }
+      if(openPath.length > 1) {
+        const currentChildren = loopChildren(children,openPath);
+        if (currentChildren) setOpenPath([...openPath,0])
+        
+      }
+    }
+    if (e.key === "Enter") {
+      const currentChildren = loopChildren(ChildrenWithCallback, openPath.length > 1 ? openPath.slice(0,openPath.length - 1) : openPath);
+      const currentItem = currentChildren[openPath.pop()]
+      currentItem.props.onMouseUp(e)
+    }
+  }
+
+
+
   return html`
+    <p>openPath : ${openPath.toString()}</p>
     <${StyledDopDownMenu} className=${className} ref=${dropDownRef} direction=${direction}>
-      ${AddCallBackToItems(React.Children.toArray(children),openPath)}
+      ${ChildrenWithCallback}
     </${StyledDopDownMenu}>
   
   `
