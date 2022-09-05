@@ -164,12 +164,12 @@ const DropDownMenu = ({ children, className, direction = 'horizontal', openHeade
 
 
   function AddCallBackToItems(children,[pathidx,...restPath],currentPath=[]) {
-
+    
     const childrenWithCb = children.map((c,idx)=>React.cloneElement(c,{
       idx,
       onMouseOver: !!openPath.length ? e=> onMouseOver(e,c,idx,currentPath) : null,
       onMouseDown : !currentPath.length && !('ontouchstart' in window) ? e => onHeaderItemClick(e,c,idx,currentPath) : e => e.stopPropagation(),
-      onTouchStart: !currentPath.length ? e => onHeaderItemClick(e,c,idx,currentPath, openPath) : e => e.stopPropagation(),
+      onTouchStart: !currentPath.length ? e => onHeaderItemClick(e,c,idx,currentPath, openPath) : e => e.preventDefault(),
       onMouseUp: !!currentPath.length ? e=> onMouseUpItem(e,c,idx,currentPath) : ()=> setmouseIsOn(false),
       onTouchMove: e => onTouchMoveItem(e,c,idx,currentPath),
       onTouchEnd: e => onTouchEndItem(e,c),
@@ -195,7 +195,7 @@ const StyledItem = styled.div`
   display: flex;
   width: 100;
   cursor: default;
-  /* user-select: none; */
+  user-select: none;
   position: relative;
   white-space: nowrap;
 
