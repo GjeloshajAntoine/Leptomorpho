@@ -1,14 +1,14 @@
-import React, { createElement, Component, useState, useMemo,useRef, useEffect, useCallback } from "https://cdn.skypack.dev/react";
-import { render } from "https://cdn.skypack.dev/react-dom";
-import htm from "https://cdn.skypack.dev/htm";
-import styled, { createGlobalStyle } from "https://cdn.skypack.dev/styled-components";
-import { ShareApple } from "https://cdn.skypack.dev/@styled-icons/evil"
-import { ArrowDropRight } from "https://cdn.skypack.dev/@styled-icons/remix-fill/ArrowDropRight"
+import React, { createElement, Component, useState, useMemo,useRef, useEffect, useCallback } from "https://cdn.skypack.dev/react?min";
+import { render } from "https://cdn.skypack.dev/react-dom?min";
+import htm from "https://cdn.skypack.dev/htm?min";
+import styled, { createGlobalStyle } from "https://cdn.skypack.dev/styled-components?min";
+import { ShareApple } from "https://cdn.skypack.dev/@styled-icons/evil?min"
+import { ArrowDropRight } from "https://cdn.skypack.dev/@styled-icons/remix-fill/ArrowDropRight?min"
 import color from 'https://cdn.skypack.dev/color';
 import useToggle from "https://cdn.skypack.dev/@react-hook/toggle"
 import useWindowSize from 'https://cdn.skypack.dev/@rehooks/window-size';
-import useOnclickOutside from 'https://cdn.skypack.dev/react-cool-onclickoutside';
-import hotkeys from 'https://cdn.skypack.dev/hotkeys-js';
+import useOnclickOutside from 'https://cdn.skypack.dev/react-cool-onclickoutside?min';
+import hotkeys from 'https://cdn.skypack.dev/hotkeys-js?min';
 
 
 mobileConsole.show()
@@ -87,6 +87,144 @@ const StyledDopDownMenu = styled.div`
 
 `
 
+const FloatTo = ({children, direction}) => {
+  const [props, setProps] = useState({ visibility: 'hidden' })
+  const [ref, setRef] = useState(null)
+  const ClonedTo = React.cloneElement(children[0],{ref: (node => {children[0].props.ref?.(node);setRef(node)})},children[0].props.children)
+  const CloneFloating = children[1]? React.cloneElement(children[1],{...props,...children[1].props}, children[1].props.children) : null
+ console.log('CloneFloating',CloneFloating);
+  useEffect(()=> {
+    if (!ref) return
+    const { top, bottom, height, left, right, width} = ref.getBoundingClientRect()
+    if (direction==="horizontal") {
+      setProps({visibility: 'visible', x:left,y:top})
+    } else if (direction === "vertical") {
+      setProps({visibility: 'visible', x:right,y:bottom})
+
+    }
+    
+  },[ref])
+
+  return html`
+    ${ClonedTo}
+    ${CloneFloating}
+  `
+
+}
+
+const StyledDopDownMenuPanel = styled.div`
+  display: flex;
+  flex-direction :${directionToFlex};
+  gap : 3px;
+  background-color: white;
+  z-index: 1;
+  ${({x,y}) => x === null || y === null ? '' :'position:fixed;' };
+  top:${({ y }) => y}px;
+  left:${({ x }) => x}px;
+  visibility: ${({ visibility }) => visibility };
+  width: auto;
+  ${({isTopLevel})=>isTopLevel? `
+    background-color: #eae7e3;
+    width: fit-content; 
+  `:`
+    width: auto;
+    background-color: white;
+    font-weight:bold;
+    justify-content: space-between;
+    filter: invert(1);
+  `};
+`
+
+const DropDownMenu = ({children, direction = 'vertical', multiOpen = false, subSetmouseIsOn, x= null,y=null }) => { //Menu And Panel combined, nestable
+  const [mouseIsOn, setmouseIsOn] = useState(false);
+  const [openItem, setOpenItem] = useState([]); // Array because you can optionaly open many menu item of the same level : props.multiOpen
+  const [flashPath, setFlashPath] = useState([])
+  const dropDownRef = useRef(null)
+  const isTopLevel = x === null && y === null // Is Top level DropDownMenu if not depedent of higher DropDownMenu (related position) or binded callback
+  console.log('top children',children);
+  useOnclickOutside(() => {
+    setOpenItem([]) 
+  },{disabled: !openItem.length ,refs:[dropDownRef]});
+
+  const onHeaderItemClick = (e, Item,idx) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    openItem.includes(idx) && !mouseIsOn ? setOpenItem([]) : setOpenItem([idx])
+    setmouseIsOn(true)
+  }
+
+  const onMouseUpItem = (e, Item, idx,) => {
+    e.stopPropagation();
+    e.preventDefault();
+
+    const { props: { children } } = Item
+    children ? setOpenItem([idx]) : setOpenItem([])
+    setmouseIsOn(false)
+    Item.props.onAction?.();
+  }
+
+  const addCallbacktoChildren = (childs) => {
+    return React.Children.toArray(childs).map((c,idx)=> {
+      const ClonedItem =  React.cloneElement(c,{
+        onMouseDown :isTopLevel && !('ontouchstart' in window) ? e => onHeaderItemClick(e,c,idx) : e=> e.stopPropagation(),
+        onTouchStart: isTopLevel ? e => onHeaderItemClick(e,c,idx,currentPath, openPath) : null,
+        onMouseUp: !isTopLevel ? e=> onMouseUpItem(e,c,idx) : ()=> setmouseIsOn(false),
+        isTopLevel,
+        isOpen: openItem.includes(idx),
+        hasSubMenu : !!c.props?.children?.length,
+      },c.props.children);
+      //  <!--x,y position <will be filled by floatTo component upon cloning -->
+      return html`
+        <${FloatTo} direction=${direction}>
+          ${ClonedItem}
+          ${!!c.props.children && openItem.includes(idx) ?
+             html`<${DropDownMenu} direction="vertical" subSetmouseIsOn=${setmouseIsOn}>
+                    ${c.props.children} 
+                  </${DropDownMenu}>`
+             : null}
+        </${FloatTo}>
+     `
+
+    })
+  }
+
+  const ChildWithCallback = addCallbacktoChildren(children)
+
+  return html`
+    <${StyledDopDownMenuPanel} direction=${direction} isTopLevel=${isTopLevel} visibility=${isTopLevel} x=${x} y=${y}>
+      ${ChildWithCallback}
+    </${StyledDopDownMenuPanel}>
+  `
+
+  const OpenTree = html`<${DropDownMenu} />`; 
+}
+
+
+
+const StyledMenuItem = styled.div`
+  font-size: 12px;
+  font-family:'-apple-system';
+  display: flex;
+  width: 100;
+  user-select: none;
+  position: relative;
+  white-space: nowrap;
+
+`
+
+const MenuItem = React.forwardRef(({name,hasSubMenu,isTopLevel,shortCut, ...props},reref)=>{
+
+  return html`
+    <${StyledMenuItem} ref=${reref} ...${props}>
+      ${name}
+      ${shortCut ? html`<span>${shortCut.replaceAll('+',' ')}</span>` :null}
+      ${!isTopLevel && hasSubMenu ? html`<${ArrowDropRight} size='12' />`:null}
+
+    </${StyledMenuItem}>
+  `
+
+})
 
 const StyledPanel = styled.div`
   position:absolute;
@@ -98,9 +236,12 @@ const StyledPanel = styled.div`
   width: auto;
 `
 
-const DropDownMenu = ({ children, className, direction = 'horizontal', openHeaderItemOn = 'click', triggerItemOn = 'MouseUp', search, zIndex }) => {
+StyledPanel.displayName = "StyledPanel"
+
+const GlobalMenu = ({ children, className, direction = 'horizontal', openHeaderItemOn = 'click', triggerItemOn = 'MouseUp', search, zIndex }) => {
   const [mouseIsOn, setmouseIsOn] = useState(false);
   const [openPath, setOpenPath] = useState([])
+  const [flashPath, setFlashPath] = useState([])
   const dropDownRef = useRef(null)
 
   useOnclickOutside(() => {
@@ -176,8 +317,8 @@ const DropDownMenu = ({ children, className, direction = 'horizontal', openHeade
     const childrenWithCb = children.map((c,idx)=>React.cloneElement(c,{
       idx,
       onMouseOver: !!openPath.length ? e=> onMouseOver(e,c,idx,currentPath) : null,
-      onMouseDown : !currentPath.length && !('ontouchstart' in window) ? e => onHeaderItemClick(e,c,idx,currentPath) : e => e.stopPropagation(),
-      onTouchStart: !currentPath.length ? e => onHeaderItemClick(e,c,idx,currentPath, openPath) : e => e.preventDefault(),
+      onMouseDown : !currentPath.length && !('ontouchstart' in window) ? e => onHeaderItemClick(e,c,idx,currentPath) :null,
+      onTouchStart: !currentPath.length ? e => onHeaderItemClick(e,c,idx,currentPath, openPath) : null,
       onMouseUp: !!currentPath.length ? e=> onMouseUpItem(e,c,idx,currentPath) : ()=> setmouseIsOn(false),
       onTouchMove: e => onTouchMoveItem(e,c,idx,currentPath),
       onTouchEnd: e => onTouchEndItem(e,c),
@@ -246,7 +387,7 @@ const DropDownMenu = ({ children, className, direction = 'horizontal', openHeade
     if (e.key === "Enter") {
       const currentChildren = loopChildren(ChildrenWithCallback, openPath.length > 1 ? openPath.slice(0,openPath.length - 1) : openPath);
       const currentItem = currentChildren[openPath.pop()]
-      currentItem.props.onMouseUp(e)
+      currentItem.props.onMouseUp?.(e)
     }
   }
 
@@ -263,11 +404,11 @@ const DropDownMenu = ({ children, className, direction = 'horizontal', openHeade
 
 
 const StyledItem = styled.div`
-  font-size: 25px;
+  font-size: 12px;
   font-family:'-apple-system';
   display: flex;
   width: 100;
-  cursor: default;
+  /* cursor: default; */
   user-select: none;
   position: relative;
   white-space: nowrap;
@@ -289,7 +430,27 @@ const StyledItem = styled.div`
       filter:invert(100%);
     }
   `:null}
-
+  ${({isFlashed})=>isFlashed? `
+    &::before {
+      position: absolute;
+      content: "";
+      width: 15px;
+      height: 15px;
+      border-top-right-radius: 15px;
+      border-bottom-right-radius: 15px;
+      backdrop-filter: invert(1);
+    }
+    &::after {
+      position: absolute;
+      right: 0;
+      content: "";
+      width: 15px;
+      height: 15px;
+      border-top-left-radius: 15px;
+      border-bottom-left-radius: 15px;
+      backdrop-filter: invert(1);
+    }
+  ` : null};
   gap : 12px;
   gap: 18px;
   &.active {
@@ -297,7 +458,9 @@ const StyledItem = styled.div`
   }
 `
 
-const MenuItem = React.forwardRef(({ name, className, children, isTopLevel,key,shortCut,isOpen, ...restProps },refBefore) => {
+StyledItem.displayName = 'StyledItem'
+
+const MenuItemOld = React.forwardRef(({ name, body, className, children, isTopLevel,key,shortCut,isOpen, ...restProps },refBefore) => {
   const ref = useRef(null)
   const [isVisible, setIsVisible] = useState(false)
 
@@ -318,6 +481,7 @@ const MenuItem = React.forwardRef(({ name, className, children, isTopLevel,key,s
                 isOpen=${isOpen}
               >
                   ${name ?? null}
+                  ${body ? React.cloneElement(body,{...body.props},body.props.children) : null}
                   ${shortCut ? html`<span>${shortCut.replaceAll('+',' ')}</span>` :null}
                   ${!isTopLevel && children?.length ? html`<${ArrowDropRight} size='12' />`:null}
                   ${isOpen? 
@@ -332,8 +496,16 @@ const MenuItem = React.forwardRef(({ name, className, children, isTopLevel,key,s
 })
 MenuItem.displayName = 'MenuItem'
 
-function MenuSearch() {
-  return html`<input style=${{width:'80%',minWidth:'100px'}} type="text"/>`
+function MenuSearch({searchTerm, setSearchTerm, searchItem, setFlashPath}) {
+  const [value, setValue] = useState('')
+  const Inputsearch =  html`
+   <input style=${{width:'80%',minWidth:'100px'}} onKeyDown=${e=>e.stopPropagation()} onChange=${({target})=>setValue(target.value)} value=${value} type="text" autofocus/>
+  `
+  return html`
+  <${MenuItem} body=${Inputsearch} onMouseOver=${e=> e.stopPropagation()} onMouseDown=${e=> e.stopPropagation()} onMouseUp=${e=> e.stopPropagation()}>
+  </${MenuItem}>
+  <${MenuItem} name="Search Item" onAction=${(a)=>console.log('Search Item',a)} shortCut=${'alt+1'}/>
+  `
 }
 
 const App = () => html`
@@ -381,9 +553,7 @@ const App = () => html`
           </${MenuItem}>
 
           <${MenuItem} name='help'>
-            <${MenuItem} name="By List" />
-            <${MenuSearch} />
-          </${MenuItem}>
+            </${MenuItem}>
 
         </${DropDownMenu}>
         <br/>
