@@ -92,18 +92,19 @@ const FloatTo = ({children, direction}) => {
   const [ref, setRef] = useState(null)
   const ClonedTo = React.cloneElement(children[0],{ref: (node => {children[0].props.ref?.(node);setRef(node)})},children[0].props.children)
   const CloneFloating = children[1]? React.cloneElement(children[1],{...props,...children[1].props}, children[1].props.children) : null
- console.log('CloneFloating',CloneFloating);
+
   useEffect(()=> {
     if (!ref) return
     const { top, bottom, height, left, right, width} = ref.getBoundingClientRect()
+
     if (direction==="horizontal") {
-      setProps({visibility: 'visible', x:left,y:top})
+      setProps({visibility: 'visible',top:bottom, left,})
     } else if (direction === "vertical") {
-      setProps({visibility: 'visible', x:right,y:bottom})
+      setProps({visibility: 'visible', top:null, left: width, bottom: height })
 
     }
     
-  },[ref])
+  },[ref,children])
 
   return html`
     ${ClonedTo}
@@ -118,9 +119,10 @@ const StyledDopDownMenuPanel = styled.div`
   gap : 3px;
   background-color: white;
   z-index: 1;
-  ${({x,y}) => x === null || y === null ? '' :'position:fixed;' };
-  top:${({ y }) => y}px;
-  left:${({ x }) => x}px;
+  ${({top,left}) => left === null ? '' :'position:fixed' };
+  top:${({ top }) => top}px;
+  left:${({ left }) => left}px;
+  bottom:${({bottom})=>bottom}px;
   visibility: ${({ visibility }) => visibility };
   width: auto;
   ${({isTopLevel})=>isTopLevel? `
@@ -135,16 +137,29 @@ const StyledDopDownMenuPanel = styled.div`
   `};
 `
 
-const DropDownMenu = ({children, direction = 'vertical', multiOpen = false, subSetmouseIsOn, x= null,y=null }) => { //Menu And Panel combined, nestable
-  const [mouseIsOn, setmouseIsOn] = useState(false);
+const DropDownMenu = React.forwardRef(({children, direction = 'vertical', isTopLevel=true,multiOpen = false, focusFromUpper= false,subSetmouseIsOn= false, top= null,left=null,bottom=null,UppercloseAll=null,UpperRef=null },forRef) => { //Menu And Panel combined, nestable
+  const [ mouseIsOn, setmouseIsOn] = useState(subSetmouseIsOn);
   const [openItem, setOpenItem] = useState([]); // Array because you can optionaly open many menu item of the same level : props.multiOpen
   const [flashPath, setFlashPath] = useState([])
   const dropDownRef = useRef(null)
-  const isTopLevel = x === null && y === null // Is Top level DropDownMenu if not depedent of higher DropDownMenu (related position) or binded callback
-  console.log('top children',children);
-  useOnclickOutside(() => {
-    setOpenItem([]) 
-  },{disabled: !openItem.length ,refs:[dropDownRef]});
+  const deepRef = useRef(null)
+  const [hasFocus, setHasFocus] = useState(isTopLevel || focusFromUpper)
+
+  const closeAll = ()=> {
+    setOpenItem([])
+    UppercloseAll?.()
+  }
+
+  useEffect(function InitFocusTopLevel(){
+    isTopLevel && !!openItem.length? dropDownRef.current.focus():null
+  },[isTopLevel,!!openItem.length])
+
+  if (isTopLevel) {
+    useOnclickOutside(() => {
+      setOpenItem([]) 
+    },{disabled: !openItem.length ,refs:[dropDownRef]});
+  }
+
 
   const onHeaderItemClick = (e, Item,idx) => {
     e.preventDefault()
@@ -159,27 +174,110 @@ const DropDownMenu = ({children, direction = 'vertical', multiOpen = false, subS
     e.preventDefault();
 
     const { props: { children } } = Item
-    children ? setOpenItem([idx]) : setOpenItem([])
+    children ? setOpenItem([idx]) : closeAll()
     setmouseIsOn(false)
     Item.props.onAction?.();
+  }
+
+  function onMouseOver(e,c,idx) {
+    e.stopPropagation()
+    e.preventDefault()
+
+    setOpenItem([idx])
+  }
+
+  const onTouchMoveItem = (e) => {
+    e.stopPropagation()
+    e.preventDefault()
+    const { touches,touches:[{clientX,clientY}={}]=[] } = e;
+
+    if (!openItem .length && !mouseIsOn) return;
+    if (touches) {
+      const newTarget = document.elementFromPoint(clientX,clientY);
+      newTarget.dispatchEvent(new Event('mouseover',{bubbles: true,}))
+    }
+  }
+  
+  const onTouchEndItem = (e) => {
+    const { target, touches,changedTouches:[{clientX,clientY}={}]=[] } = e;
+    
+    const newTarget = document.elementFromPoint(clientX,clientY);
+    if (touches && newTarget !== target) {
+      newTarget.dispatchEvent(new Event('mouseup',{bubbles: true,}))
+    }
+  }
+
+
+
+  const nextIdx = (arr,idx) => arr.length -1 === idx ? 0 : idx +1
+  const prevIdx = (arr,idx) => idx === 0 ? arr.length -1 : idx - 1;
+
+  const onKeyDown = (e) => {
+    e.stopPropagation()
+      if (direction === "horizontal") {
+        if (e.key === "ArrowLeft" ) {
+          setOpenItem([prevIdx(children,openItem[0])])
+        }
+        if (e.key === "ArrowRight") {
+          setOpenItem([nextIdx(children,openItem[0])])
+        }
+        if (e.key === "ArrowDown") {
+          deepRef.current.focus()
+          dropDownRef.current.blur()
+        }
+      }
+      if (direction === "vertical") {
+        if (e.key === "ArrowUp" ) {
+          setOpenItem([prevIdx(children,openItem[0])])
+        }
+        if (e.key === "ArrowDown") {
+          setOpenItem([nextIdx(children,openItem[0])])
+        }
+        if (e.key === "ArrowRight") {
+          const itemHasChildren = !!children[openItem[0]].props.children
+          if (itemHasChildren) {
+            dropDownRef.current.blur()
+            deepRef.current.focus()
+          } else {
+            !isTopLevel? UpperRef.current.focus() : null
+          }
+        }
+        if (e.key  === "ArrowLeft") {
+          !isTopLevel? UpperRef.current.focus(): null;
+        }
+      }
+      if (e.key === "Enter") {
+        onMouseUpItem(e,children[openItem[0]],openItem[0])
+      }
   }
 
   const addCallbacktoChildren = (childs) => {
     return React.Children.toArray(childs).map((c,idx)=> {
       const ClonedItem =  React.cloneElement(c,{
         onMouseDown :isTopLevel && !('ontouchstart' in window) ? e => onHeaderItemClick(e,c,idx) : e=> e.stopPropagation(),
-        onTouchStart: isTopLevel ? e => onHeaderItemClick(e,c,idx,currentPath, openPath) : null,
+        onTouchStart: isTopLevel ? e => onHeaderItemClick(e,c,idx) : null,
         onMouseUp: !isTopLevel ? e=> onMouseUpItem(e,c,idx) : ()=> setmouseIsOn(false),
+        onMouseOver: isTopLevel && !openItem.length?  null : e=> onMouseOver(e,c,idx),
+        onTouchMove: e => onTouchMoveItem(e,c,idx),
+        onTouchEnd: e => onTouchEndItem(e,c),
         isTopLevel,
         isOpen: openItem.includes(idx),
-        hasSubMenu : !!c.props?.children?.length,
+        hasSubMenu : !!c.props?.children?.length, 
       },c.props.children);
       //  <!--x,y position <will be filled by floatTo component upon cloning -->
       return html`
         <${FloatTo} direction=${direction}>
           ${ClonedItem}
           ${!!c.props.children && openItem.includes(idx) ?
-             html`<${DropDownMenu} direction="vertical" subSetmouseIsOn=${setmouseIsOn}>
+             html`<${DropDownMenu} 
+                        direction="vertical" 
+                        isTopLevel=${false} 
+                        focusFromUpper=${openItem.length === 1 && !hasFocus} 
+                        subSetmouseIsOn=${setmouseIsOn} 
+                        ref=${deepRef}
+                        UpperRef=${dropDownRef}
+                        UppercloseAll=${closeAll} 
+                        UpperSetHasFocus=${setHasFocus}>
                     ${c.props.children} 
                   </${DropDownMenu}>`
              : null}
@@ -192,13 +290,31 @@ const DropDownMenu = ({children, direction = 'vertical', multiOpen = false, subS
   const ChildWithCallback = addCallbacktoChildren(children)
 
   return html`
-    <${StyledDopDownMenuPanel} direction=${direction} isTopLevel=${isTopLevel} visibility=${isTopLevel} x=${x} y=${y}>
+    <${StyledDopDownMenuPanel} 
+          direction=${direction} 
+          ref=${(node) => {
+          dropDownRef.current = node;
+            if (typeof forRef === 'function') {
+              forRef(node);
+            } else if (forRef) {
+              forRef.current = node;
+            }
+          }}
+          isTopLevel=${isTopLevel} 
+          visibility=${isTopLevel} 
+          top=${top} 
+          left=${left} 
+          bottom=${bottom}
+          onKeyDown=${onKeyDown}
+          onFocus=${e=>{e.stopPropagation();!openItem.length? setOpenItem([0]):null}}
+          tabIndex="0"
+          >
       ${ChildWithCallback}
     </${StyledDopDownMenuPanel}>
   `
 
   const OpenTree = html`<${DropDownMenu} />`; 
-}
+})
 
 
 
@@ -210,7 +326,8 @@ const StyledMenuItem = styled.div`
   user-select: none;
   position: relative;
   white-space: nowrap;
-
+  background-color: inherit;
+  filter: ${({isOpen})=> isOpen ? 'invert(1)': null};
 `
 
 const MenuItem = React.forwardRef(({name,hasSubMenu,isTopLevel,shortCut, ...props},reref)=>{
