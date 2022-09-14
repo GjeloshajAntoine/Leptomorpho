@@ -133,11 +133,10 @@ const StyledDopDownMenuPanel = styled.div`
     background-color: white;
     font-weight:bold;
     justify-content: space-between;
-    filter: invert(1);
   `};
 `
 
-const DropDownMenu = React.forwardRef(({children, direction = 'vertical', isTopLevel=true,multiOpen = false, focusFromUpper= false,subSetmouseIsOn= false, top= null,left=null,bottom=null,UppercloseAll=null,UpperRef=null },forRef) => { //Menu And Panel combined, nestable
+const DropDownMenu = React.forwardRef(({children, direction = 'vertical', isTopLevel=true,multiOpen = false, focusFromUpper= false,allTopChildren=[],subSetmouseIsOn= false, top= null,left=null,bottom=null,UppercloseAll=null,UpperRef=null },forRef) => { //Menu And Panel combined, nestable
   const [ mouseIsOn, setmouseIsOn] = useState(subSetmouseIsOn);
   const [openItem, setOpenItem] = useState([]); // Array because you can optionaly open many menu item of the same level : props.multiOpen
   const [flashPath, setFlashPath] = useState([])
