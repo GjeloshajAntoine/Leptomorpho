@@ -1,17 +1,16 @@
-import React, { createElement, Component, useState, useMemo,useRef, useEffect, useCallback } from "https://cdn.skypack.dev/react?min";
-import { render } from "https://cdn.skypack.dev/react-dom?min";
-import htm from "https://cdn.skypack.dev/htm?min";
-import styled, { createGlobalStyle } from "https://cdn.skypack.dev/styled-components?min";
-import { ShareApple } from "https://cdn.skypack.dev/@styled-icons/evil?min"
-import { ArrowDropRight } from "https://cdn.skypack.dev/@styled-icons/remix-fill/ArrowDropRight?min"
-import color from 'https://cdn.skypack.dev/color';
+import React, { createElement, useEffect, useMemo, useRef, useState } from "https://cdn.skypack.dev/react";
+import { render } from "https://cdn.skypack.dev/react-dom";
+import htm from "https://cdn.skypack.dev/htm";
+import styled, { createGlobalStyle } from "https://cdn.skypack.dev/styled-components@5.0";
+
+import { ShareApple } from "https://cdn.skypack.dev/@styled-icons/evil";
+import { ArrowDropRight } from "https://cdn.skypack.dev/@styled-icons/remix-fill/ArrowDropRight";
+import hotkeys from 'https://cdn.skypack.dev/hotkeys-js';
+import useOnclickOutside from 'https://cdn.skypack.dev/react-cool-onclickoutside';
 import useToggle from "https://cdn.skypack.dev/@react-hook/toggle"
-import useWindowSize from 'https://cdn.skypack.dev/@rehooks/window-size';
-import useOnclickOutside from 'https://cdn.skypack.dev/react-cool-onclickoutside?min';
-import hotkeys from 'https://cdn.skypack.dev/hotkeys-js?min';
 
 
-mobileConsole.show()
+// mobileConsole.show()
 
 // const html = htm.bind((type,props,...children)=>{/*console.log(type);*/return createElement(type,props,...children)});
 const html = htm.bind(createElement);
@@ -150,7 +149,7 @@ const DropDownMenu = React.forwardRef(({children, direction = 'vertical', isTopL
     UppercloseAll?.()
   }
 
-  useEffect(function InitFocusTopLevel(){
+    useEffect(function InitFocusTopLevel(){
     isTopLevel && !!openItem.length? dropDownRef.current.focus():null
   },[isTopLevel,!!openItem.length])
 
@@ -201,7 +200,7 @@ const DropDownMenu = React.forwardRef(({children, direction = 'vertical', isTopL
   const onTouchEndItem = (e) => {
     const { target, touches,changedTouches:[{clientX,clientY}={}]=[] } = e;
     e.preventDefault();
-    
+
     const newTarget = document.elementFromPoint(clientX,clientY);
     if (touches && newTarget !== target) {
       newTarget.dispatchEvent(new Event('mouseup',{bubbles: true,}))
@@ -269,17 +268,17 @@ const DropDownMenu = React.forwardRef(({children, direction = 'vertical', isTopL
       },c.props.children);
 
       const DropDownMenuHtml = !!c.props.children && openItem.includes(idx) ?
-             html`<${DropDownMenu} 
-                        direction="vertical" 
-                        isTopLevel=${false} 
-                        focusFromUpper=${openItem.length === 1 && !hasFocus} 
-                        subSetmouseIsOn=${setmouseIsOn} 
-                        ref=${deepRef}
-                        UpperRef=${dropDownRef}
-                        UppercloseAll=${closeAll} 
-                        UpperSetHasFocus=${setHasFocus}>
-                    ${c.props.children} 
-                  </${DropDownMenu}>`
+      html`<${DropDownMenu} 
+                 direction="vertical" 
+                 isTopLevel=${false} 
+                 focusFromUpper=${openItem.length === 1 && !hasFocus} 
+                 subSetmouseIsOn=${setmouseIsOn} 
+                 ref=${deepRef}
+                 UpperRef=${dropDownRef}
+                 UppercloseAll=${closeAll} 
+                 UpperSetHasFocus=${setHasFocus}>
+             ${c.props.children} 
+           </${DropDownMenu}>`
       : null;
       //  <!--x,y position <will be filled by floatTo component upon cloning -->
       const customDropDownMenu = c.props.children?.props?.isExtension
@@ -405,7 +404,6 @@ const GlobalMenu = ({ children, className, direction = 'horizontal', openHeaderI
   const dropDownRef = useRef(null)
 
   useOnclickOutside(() => {
-    console.log('useOnclickOutside');
     setOpenPath([]) 
   },{disabled: !openPath.length ,refs:[dropDownRef]});
 
@@ -492,9 +490,6 @@ const GlobalMenu = ({ children, className, direction = 'horizontal', openHeaderI
   const ChildrenWithCallback = AddCallBackToItems(React.Children.toArray(children),openPath);
 
   const onKeydown = (e) => {
-    console.log('Key down', e.key);
-    const UpperChildren = children
-    console.log('UpperChildren',UpperChildren);
     function loopChildren(childs, [pathidx,...restPath]) {
       if (!restPath.length) {
         return childs[pathidx].props.children
@@ -668,6 +663,58 @@ function MenuSearch({searchTerm, setSearchTerm, searchItem, setFlashPath}) {
   `
 }
 
+const StyledCenteredSelect = styled.div`
+  display: inline-block;
+  position: relative;
+  border: 1px solid gray;
+  background-color:white;
+  width: auto;
+  padding: 0 5px;
+`
+
+const StyledListSelect = styled.div`
+  display: block;
+  position: absolute;
+  left: 0; 
+  right: 0; 
+  margin-left: auto; 
+  margin-right: auto; 
+  background-color: #80808078;
+  visibility:${({visibility})=>visibility ? 'visible': 'hidden'};
+  top: ${({top=0})=> top}px;
+  option {
+    padding: 0;
+  }
+`
+
+function CenteredSelect({children}) {
+  const [ref, setRef] = useState(null);
+  const [refList, setRefList] = useState(null);
+  const [isOpen, toggleIsOpen] = useState(false)
+  const selectedFromProps  = children?.filter(c=>!!c.props.selected)[0] ?? children[0]
+  const [selected, setSelected] = useState(selectedFromProps)
+  const clonedSelectedWithRef = selected ? 
+    React.cloneElement(selected,{ref:node => {children[0].props.ref?.(node);setRef(node)},...selected.props},selected.props.children)
+  : null;
+
+
+  const listVisibility = isOpen && !!refList?.getBoundingClientRect().height && !!ref?.getBoundingClientRect().height;
+  const Δy = ref?.getBoundingClientRect().y - refList?.getBoundingClientRect().y;
+
+  return html`
+    <${StyledCenteredSelect} onClick=${()=>toggleIsOpen(!isOpen)}>
+      ${selected.props.children}
+      ${
+        isOpen ? html`
+          <${StyledListSelect} key=${listVisibility.toString()}  ref=${node=>{setRefList(node);return node;}} visibility=${listVisibility} top=${-Δy}>
+            ${children.map(c=> c=== selected ? clonedSelectedWithRef : c)}
+          </${StyledListSelect}>
+        `: null
+      }
+    </${StyledCenteredSelect}>
+  `
+}
+
 const App = () => html`
       <${React.Fragment}>
       <${TheHTML}/>
@@ -714,11 +761,23 @@ const App = () => html`
 
           <${MenuItem} name='help'>
             <${SearchMenu} isExtension/>
-            </${MenuItem}>
+          </${MenuItem}>
 
         </${DropDownMenu}>
         <br/>
         "test un trc"
+        <br/>
+        <select>
+          <option value="ex 1">ex1</option>
+          <option value="ex 2" selected>ex2</option>
+          <option value="ex 3">ex3</option>
+        </select>
+
+        <${CenteredSelect}>
+          <option value="ex 1" >ex1</option>
+          <option value="ex 2" >ex2</option>
+          <option value="ex 3" selected>ex3</option>
+        </${CenteredSelect}>
       </${ControlBox}>
       <//>
       `;
