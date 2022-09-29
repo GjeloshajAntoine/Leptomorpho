@@ -93,6 +93,7 @@ const FloatTo = ({children, direction}) => {
   const ClonedTo = React.cloneElement(children[0],{ref: (node => {children[0].props.ref?.(node);setRef(node)})},children[0].props.children)
   const CloneFloating = children[1]? React.cloneElement(children[1],{...props,...children[1].props}, children[1].props.children) : null
 
+
   useEffect(()=> {
     if (!ref) return
     const { top, bottom, height, left, right, width} = ref.getBoundingClientRect()
@@ -100,7 +101,7 @@ const FloatTo = ({children, direction}) => {
     if (direction==="horizontal") {
       setProps({visibility: 'visible',top:bottom, left,})
     } else if (direction === "vertical") {
-      setProps({visibility: 'visible', top:null, left: width, bottom: height })
+      setProps({visibility: 'visible', top, left: right, bottom: null })
 
     }
     
@@ -171,8 +172,8 @@ const DropDownMenu = React.forwardRef(({children, direction = 'vertical', isTopL
   const onMouseUpItem = (e, Item, idx,) => {
     e.stopPropagation();
     e.preventDefault();
-
     const { props: { children } } = Item
+
     children ? setOpenItem([idx]) : closeAll()
     setmouseIsOn(false)
     Item.props.onAction?.();
@@ -199,6 +200,7 @@ const DropDownMenu = React.forwardRef(({children, direction = 'vertical', isTopL
   
   const onTouchEndItem = (e) => {
     const { target, touches,changedTouches:[{clientX,clientY}={}]=[] } = e;
+    e.preventDefault();
     
     const newTarget = document.elementFromPoint(clientX,clientY);
     if (touches && newTarget !== target) {
@@ -212,6 +214,7 @@ const DropDownMenu = React.forwardRef(({children, direction = 'vertical', isTopL
   const prevIdx = (arr,idx) => idx === 0 ? arr.length -1 : idx - 1;
 
   const onKeyDown = (e) => {
+    console.log('childrenchildren',children.length);
     e.stopPropagation()
       if (direction === "horizontal") {
         if (e.key === "ArrowLeft" ) {
@@ -253,7 +256,7 @@ const DropDownMenu = React.forwardRef(({children, direction = 'vertical', isTopL
   const addCallbacktoChildren = (childs) => {
     return React.Children.toArray(childs).map((c,idx)=> {
       const ClonedItem =  React.cloneElement(c,{
-        onMouseDown :isTopLevel && !('ontouchstart' in window) ? e => onHeaderItemClick(e,c,idx) : e=> e.stopPropagation(),
+        onMouseDown :isTopLevel && !('ontouchstart' in window ) ? e => onHeaderItemClick(e,c,idx) : e=> e.stopPropagation(),
         onTouchStart: isTopLevel ? e => onHeaderItemClick(e,c,idx) : null,
         onMouseUp: !isTopLevel ? e=> onMouseUpItem(e,c,idx) : ()=> setmouseIsOn(false),
         onMouseOver: isTopLevel && !openItem.length?  null : e=> onMouseOver(e,c,idx),
@@ -262,12 +265,10 @@ const DropDownMenu = React.forwardRef(({children, direction = 'vertical', isTopL
         isTopLevel,
         isOpen: openItem.includes(idx),
         hasSubMenu : !!c.props?.children?.length, 
+        ...c.props, 
       },c.props.children);
-      //  <!--x,y position <will be filled by floatTo component upon cloning -->
-      return html`
-        <${FloatTo} direction=${direction}>
-          ${ClonedItem}
-          ${!!c.props.children && openItem.includes(idx) ?
+
+      const DropDownMenuHtml = !!c.props.children && openItem.includes(idx) ?
              html`<${DropDownMenu} 
                         direction="vertical" 
                         isTopLevel=${false} 
@@ -279,7 +280,26 @@ const DropDownMenu = React.forwardRef(({children, direction = 'vertical', isTopL
                         UpperSetHasFocus=${setHasFocus}>
                     ${c.props.children} 
                   </${DropDownMenu}>`
-             : null}
+      : null;
+      //  <!--x,y position <will be filled by floatTo component upon cloning -->
+      const customDropDownMenu = c.props.children?.props?.isExtension
+      const ExtendDropDown = !!customDropDownMenu && !!c.props.children && openItem.includes(idx) ? React.cloneElement(c.props.children,{
+        direction:"vertical", 
+        isTopLevel:false ,
+        focusFromUpper:openItem.length === 1 && !hasFocus,
+        subSetmouseIsOn:setmouseIsOn, 
+        ref:deepRef,
+        allTopChildren:isTopLevel ? children : allTopChildren,
+        UpperRef:dropDownRef,
+        UppercloseAll:closeAll, 
+        UpperSetHasFocus:setHasFocus,
+
+      },c.props.children.props.children) : null
+
+      return html`
+        <${FloatTo} direction=${direction}>
+          ${ClonedItem}
+          ${!!c.props.children && openItem.includes(idx) ? ExtendDropDown ? ExtendDropDown : DropDownMenuHtml : null}
         </${FloatTo}>
      `
 
@@ -312,13 +332,12 @@ const DropDownMenu = React.forwardRef(({children, direction = 'vertical', isTopL
     </${StyledDopDownMenuPanel}>
   `
 
-  const OpenTree = html`<${DropDownMenu} />`; 
 })
 
 
 
 const StyledMenuItem = styled.div`
-  font-size: 12px;
+  font-size: 13px;
   font-family:'-apple-system';
   display: flex;
   width: 100;
@@ -340,6 +359,31 @@ const MenuItem = React.forwardRef(({name,hasSubMenu,isTopLevel,shortCut, ...prop
     </${StyledMenuItem}>
   `
 
+})
+
+
+const SearchMenu = React.forwardRef(({allTopChildren = [], ...props},forwardedRef)=> {
+  const [searchTerm, setSearchTerm] = useState('')
+
+  const extractPropsChildrenAllLevel = Array.from(allTopChildren)
+  .map(function Fla(Item,idx,array,path=[]){
+    const {props:{children}} = Item
+    return [children ? Array.from(children).map((child,idx_)=>Fla(child,idx_,array,[...path,idx])): [{Item,path:[...path,idx]}]]}
+    )
+    .flat(Infinity)
+    .filter(({Item:{props:{name}}})=>name.toUpperCase().includes(searchTerm.toUpperCase()))
+    .map(({Item})=>Item)
+
+  extractPropsChildrenAllLevel.unshift(html`
+      <input style=${{width:'96%',minWidth:'100px',margin:'0 auto',borderRadius:'5px'}} onmousedown=${e=>e} onMouseUp=${e=>e} onTouchEnd=${e=>e} NoOnKeyDown=${e=>e.stopPropagation()} onChange=${({target})=>setSearchTerm(target.value)} value=${searchTerm} type="text" autofocus/>
+    `)
+
+
+  return html`
+    <${DropDownMenu} ...${props} ref=${forwardedRef} >
+      ${extractPropsChildrenAllLevel}
+    </${DropDownMenu}>
+  `
 })
 
 const StyledPanel = styled.div`
@@ -669,6 +713,7 @@ const App = () => html`
           </${MenuItem}>
 
           <${MenuItem} name='help'>
+            <${SearchMenu} isExtension/>
             </${MenuItem}>
 
         </${DropDownMenu}>
