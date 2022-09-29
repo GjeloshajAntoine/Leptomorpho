@@ -1,7 +1,7 @@
 import React, { createElement, useEffect, useMemo, useRef, useState } from "https://cdn.skypack.dev/react";
 import { render } from "https://cdn.skypack.dev/react-dom";
 import htm from "https://cdn.skypack.dev/htm";
-import styled, { createGlobalStyle } from "https://cdn.skypack.dev/styled-components@5.0";
+import styled, { createGlobalStyle, css } from "https://cdn.skypack.dev/styled-components@5.0";
 
 import { ShareApple } from "https://cdn.skypack.dev/@styled-icons/evil";
 import { ArrowDropRight } from "https://cdn.skypack.dev/@styled-icons/remix-fill/ArrowDropRight";
@@ -14,6 +14,8 @@ import useToggle from "https://cdn.skypack.dev/@react-hook/toggle"
 
 // const html = htm.bind((type,props,...children)=>{/*console.log(type);*/return createElement(type,props,...children)});
 const html = htm.bind(createElement);
+
+const clearWarmBeige = css`background: linear-gradient(44.8deg, hsl(13deg 100% 97%) -53.1%, hsl(43deg 100% 95%) 49%);`
 
 const TheHTML = createGlobalStyle`
   html,body {
@@ -669,7 +671,7 @@ const StyledCenteredSelect = styled.div`
   border: 1px solid gray;
   background-color:white;
   width: auto;
-  padding: 0 5px;
+  padding: 0 5%;
 `
 
 const StyledListSelect = styled.div`
@@ -679,11 +681,18 @@ const StyledListSelect = styled.div`
   right: 0; 
   margin-left: auto; 
   margin-right: auto; 
-  background-color: #80808078;
+  background-color: white;
   visibility:${({visibility})=>visibility ? 'visible': 'hidden'};
   top: ${({top=0})=> top}px;
+  text-align:center;
+  outline: 1px solid white;
   option {
     padding: 0;
+    user-select: none;
+  }
+  option:hover {
+    filter: invert(1);
+    background-color: inherit;
   }
 `
 
@@ -693,21 +702,32 @@ function CenteredSelect({children}) {
   const [isOpen, toggleIsOpen] = useState(false)
   const selectedFromProps  = children?.filter(c=>!!c.props.selected)[0] ?? children[0]
   const [selected, setSelected] = useState(selectedFromProps)
-  const clonedSelectedWithRef = selected ? 
-    React.cloneElement(selected,{ref:node => {children[0].props.ref?.(node);setRef(node)},...selected.props},selected.props.children)
-  : null;
 
+  const onSelect = (e, OptionComp) => {
+    e.stopPropagation()
+    setSelected(OptionComp)
+    toggleIsOpen(false)
+  }
 
   const listVisibility = isOpen && !!refList?.getBoundingClientRect().height && !!ref?.getBoundingClientRect().height;
   const Δy = ref?.getBoundingClientRect().y - refList?.getBoundingClientRect().y;
 
   return html`
-    <${StyledCenteredSelect} onClick=${()=>toggleIsOpen(!isOpen)}>
+    <${StyledCenteredSelect} onMouseUp=${e=>{e.stopPropagation();return false}} onMouseDown=${()=>toggleIsOpen(!isOpen)}>
       ${selected.props.children}
       ${
         isOpen ? html`
-          <${StyledListSelect} key=${listVisibility.toString()}  ref=${node=>{setRefList(node);return node;}} visibility=${listVisibility} top=${-Δy}>
-            ${children.map(c=> c=== selected ? clonedSelectedWithRef : c)}
+          <${StyledListSelect} ref=${node=>{setRefList(node);return node;}} visibility=${listVisibility} top=${-Δy}>
+            ${
+              children.map(c => React.cloneElement(c,{
+                 ref: c === selected ? node => {children[0].props.ref?.(node);setRef(node)} : null,
+                 onClick: e => onSelect(e,c),
+                 onMouseDown: e=> onSelect(e,c),
+                 onMouseUp : c !== selected ?  e=> onSelect(e,c) :null,
+                 selected : c === selected,
+                ...c.props
+              },c.props.children))
+            }
           </${StyledListSelect}>
         `: null
       }
@@ -777,6 +797,10 @@ const App = () => html`
           <option value="ex 1" >ex1</option>
           <option value="ex 2" >ex2</option>
           <option value="ex 3" selected>ex3</option>
+          <option value="ex 4" >ex4</option>
+          <option value="ex 5" >ex5</option>
+          <option value="ex 6" >ex6</option>
+
         </${CenteredSelect}>
       </${ControlBox}>
       <//>
