@@ -16,6 +16,8 @@ import useToggle from "https://cdn.skypack.dev/@react-hook/toggle"
 const html = htm.bind(createElement);
 
 const clearWarmBeige = css`background: linear-gradient(44.8deg, hsl(13deg 100% 97%) -53.1%, hsl(43deg 100% 95%) 49%);`
+const NeonPinkGradient = css` background-image: linear-gradient(43deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%);` 
+const HighlightNeonPinkGradient = css`filter: hue-rotate(144deg)`;
 
 const TheHTML = createGlobalStyle`
   html,body {
