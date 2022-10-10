@@ -9,6 +9,8 @@ import hotkeys from 'https://cdn.skypack.dev/hotkeys-js';
 import useOnclickOutside from 'https://cdn.skypack.dev/react-cool-onclickoutside';
 import useToggle from "https://cdn.skypack.dev/@react-hook/toggle"
 
+import { ChevronUpDown } from "https://cdn.skypack.dev/@styled-icons/fluentui-system-filled/ChevronUpDown";
+
 
 // mobileConsole.show()
 
@@ -674,8 +676,8 @@ const StyledCenteredSelect = styled.div`
   position: relative;
   border: 1px solid gray;
   background-color:white;
-  width: auto;
-  padding: 0 5%;
+  padding-left: 1%;
+  user-select: none;
 `
 
 const StyledListSelect = styled.div`
@@ -689,16 +691,29 @@ const StyledListSelect = styled.div`
   visibility:${({visibility})=>visibility ? 'visible': 'hidden'};
   top: ${({top=0})=> top}px;
   text-align:center;
-  outline: 1px solid white;
-  option {
+  /* outline: 1px solid white; */
+  width: calc(100% + 1px);
+  * {
     padding: 0;
     user-select: none;
+    padding-right: 16%;
   }
-  option:hover {
+  *:hover {
     filter: invert(1);
     background-color: inherit;
   }
 `
+const StyledChevronUpDown = styled(ChevronUpDown)`
+  width: 12px;
+  margin-left: 5px;
+  vertical-align: -1px !important;
+  border-radius: 6px;
+  padding: 1px;
+  background: linear-gradient(0deg, rgba(0,255,220,1) 0%, rgba(255,255,0,1) 100%);
+  border: 1px solid #80808078;
+  vertical-align: -3px !important;
+
+ `
 
 function CenteredSelect({children}) {
   const [ref, setRef] = useState(null);
@@ -716,9 +731,10 @@ function CenteredSelect({children}) {
   const listVisibility = isOpen && !!refList?.getBoundingClientRect().height && !!ref?.getBoundingClientRect().height;
   const Δy = ref?.getBoundingClientRect().y - refList?.getBoundingClientRect().y;
 
-  return html`
-    <${StyledCenteredSelect} onMouseUp=${e=>{e.stopPropagation();return false}} onMouseDown=${()=>toggleIsOpen(!isOpen)}>
+  return html`  
+    <${StyledCenteredSelect} onMouseUp=${e=>{e.stopPropagation();return false}} onTouchStart=${()=>toggleIsOpen(!isOpen)}  onMouseDown=${()=>toggleIsOpen(!isOpen)}>
       ${selected.props.children}
+      <${StyledChevronUpDown} />
       ${
         isOpen ? html`
           <${StyledListSelect} ref=${node=>{setRefList(node);return node;}} visibility=${listVisibility} top=${-Δy}>
@@ -727,12 +743,13 @@ function CenteredSelect({children}) {
                  ref: c === selected ? node => {children[0].props.ref?.(node);setRef(node)} : null,
                  onClick: e => onSelect(e,c),
                  onMouseDown: e=> onSelect(e,c),
+                 onTouchStart:  e=> onSelect(e,c),
                  onMouseUp : c !== selected ?  e=> onSelect(e,c) :null,
                  selected : c === selected,
                 ...c.props
               },c.props.children))
             }
-          </${StyledListSelect}>
+          </${StyledListSelect}> 
         `: null
       }
     </${StyledCenteredSelect}>
@@ -745,7 +762,7 @@ const App = () => html`
       <${ControlBox}>
         <p>Hello World!___</p>
         <${StyledButton}>Click me!</${StyledButton}>
-        <${StyledButton}> <${ShareApple}/> </${StyledButton}>
+        <!-- <${StyledButton}> <${ShareApple}/> </${StyledButton}> -->
         <br/>
         <br/>
         <br/>
@@ -798,12 +815,12 @@ const App = () => html`
         </select>
 
         <${CenteredSelect}>
-          <option value="ex 1" >ex1</option>
-          <option value="ex 2" >ex2</option>
-          <option value="ex 3" selected>ex3</option>
-          <option value="ex 4" >ex4</option>
-          <option value="ex 5" >ex5</option>
-          <option value="ex 6" >ex6</option>
+          <div value="ex 1" >ex1</div>
+          <div value="ex 2" >ex2</div>
+          <div value="ex 3" selected>ex3</div>
+          <div value="ex 4" >ex4</div>
+          <div value="ex 5" >ex5</div>
+          <div value="ex 6" >ex6</div>
 
         </${CenteredSelect}>
       </${ControlBox}>
