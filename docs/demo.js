@@ -56,6 +56,8 @@ const StyledButton = styled.button`
   min-width: 25px;
   min-height: 25px; 
 
+  background: linear-gradient(0deg, rgba(243,223,207,1) 0%, rgba(234,231,227,1) 90%);
+
   &:active {
     background: linear-gradient(
         0deg,
