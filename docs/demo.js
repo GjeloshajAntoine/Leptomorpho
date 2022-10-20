@@ -7,10 +7,9 @@ import { ShareApple } from "https://cdn.skypack.dev/@styled-icons/evil";
 import { ArrowDropRight } from "https://cdn.skypack.dev/@styled-icons/remix-fill/ArrowDropRight";
 import hotkeys from 'https://cdn.skypack.dev/hotkeys-js';
 import useOnclickOutside from 'https://cdn.skypack.dev/react-cool-onclickoutside';
-import useToggle from "https://cdn.skypack.dev/@react-hook/toggle"
+// import useToggle from "https://cdn.skypack.dev/@react-hook/toggle"
 
 import { ChevronUpDown } from "https://cdn.skypack.dev/@styled-icons/fluentui-system-filled/ChevronUpDown";
-
 
 // mobileConsole.show()
 
@@ -35,52 +34,80 @@ const TheHTML = createGlobalStyle`
 const ControlBox = styled.div`
   background-color: #eae7e3;
   width: 65vw;
-  height: 45vh;
+  height: 55vh;
   margin: 0 auto;
   /* margin-top: 15vh; */
   padding: 5px;
 `;
 
+const buttonColor = 'rgb(255 246 219)';
+
 const StyledButton = styled.button`
-  background: none;
-	color: inherit;
 	border: none;
 	padding: 0;
 	font: inherit;
 	cursor: pointer;
 	outline: inherit;
 
-  border: 1px solid #a9a9a9; // not color ?
-  border-radius: 1em;
+  border: 1px solid rgba(243,223,207,1);
+  border: 1px solid rgb(255 255 255);
+  outline: 1px solid ${buttonColor};
+  background: linear-gradient(to top, ${buttonColor} 0%,rgba(255,255,255,1) 28%);
+
+  border-radius: 5px;
   transition: all 0.1s;
   padding: 3px;
   font-size: 12px;
   min-width: 25px;
-  min-height: 25px; 
+  min-height: 20px; 
 
-  background: linear-gradient(0deg, rgba(243,223,207,1) 0%, rgba(234,231,227,1) 90%);
+  padding: 3px 13px;
+    font-size: 11px;
+    border: 1px solid rgb(0 0 0);
+    outline: rgb(0 0 0) solid 1px;
+    background: linear-gradient(to top, rgb(51 19 0) 80%, rgb(255, 255, 255) 20%);
+    color: white;
+    font-family: system-ui;
+    padding: 1px 13px;
+    font-size: 11px;
 
+  /* background: linear-gradient(0deg, rgba(243,223,207,1) 0%, rgba(238,227,218,1) 12%, rgba(255,255,255,1) 100%); */
+  /* filter: brightness(1.09) saturate(2); */
   &:active {
-    background: linear-gradient(
-        0deg,
-        rgb(191 191 191 / 44%) 0%,
-        rgb(197 197 197 / 0%) 100%
-      );
-    backdrop-filter: hue-rotate(174deg) invert(70%);
+    /* filter: sepia(0.2); */
+    /* filter: none; */
+    /* background: linear-gradient(180deg, rgba(243,223,207,1) 0%, rgba(238,227,218,1) 12%, rgba(255,255,255,1) 100%); */
+    background: linear-gradient(to bottom, rgb(255 246 219) 0%,rgba(255,255,255,1) 28%);
+    background: linear-gradient(to bottom, ${buttonColor} 95%, rgba(255,255,255,1) 0%);
+    background: linear-gradient(to bottom, rgb(34 34 34) 83%, rgb(255, 255, 255) 14%);
+    outline: rgb(0, 0, 0) solid 1px;
+    border: rgb(104 104 104) solid 1px;
+  }
 
-    &:before {
-      position: absolute;
+  &::before {
+    content: "";
+    display: block;
+    width: 24px;
+    min-height: 26px;
+    border-top: 4px solid red;
+    border-radius: 16px;
+    transform: rotateZ(333deg);
+    position: absolute;
+    bottom: 0;
+    left: 0;
+  }
 
-      background: linear-gradient(
-        0deg,
-        rgb(191 191 191 / 44%) 0%,
-        rgb(197 197 197 / 0%) 100%
-      );
-      height: 20px;
-      width: 65px;
-      border-radius: 1em;
-      backdrop-filter: hue-rotate(174deg) invert(70%);
-    }
+  &::after{
+    content: '';
+    display: block;
+    width: 24px;
+    min-height: 26px;
+    border-top: 4px solid red;
+    border-radius: 16px;
+    transform: rotateZ(333deg);
+    position: absolute;
+    bottom: 0;
+    right: 0;
   }
 `;
 
@@ -393,177 +420,7 @@ const SearchMenu = React.forwardRef(({allTopChildren = [], ...props},forwardedRe
   `
 })
 
-const StyledPanel = styled.div`
-  position:absolute;
-  background-color: white;
-  z-index: 1;
-  top:${({ top }) => top}px;
-  left:${({ left }) => left}px;
-  visibility: ${({ visibility }) => visibility ? 'visible' : 'hidden'};
-  width: auto;
-`
 
-StyledPanel.displayName = "StyledPanel"
-
-const GlobalMenu = ({ children, className, direction = 'horizontal', openHeaderItemOn = 'click', triggerItemOn = 'MouseUp', search, zIndex }) => {
-  const [mouseIsOn, setmouseIsOn] = useState(false);
-  const [openPath, setOpenPath] = useState([])
-  const [flashPath, setFlashPath] = useState([])
-  const dropDownRef = useRef(null)
-
-  useOnclickOutside(() => {
-    setOpenPath([]) 
-  },{disabled: !openPath.length ,refs:[dropDownRef]});
-
-  useMemo(()=> { 
-    hotkeys.unbind(); 
-    const extractPropsChildrenAllLevel = Array.from(children).map(function Fla({props:{children,shortCut,onAction}={}}){return [children ? Array.from(children).map(child=>Fla(child)): [{onAction,shortCut}]]}).flat(Infinity).filter(u=>!!u.shortCut)
-    extractPropsChildrenAllLevel.map(({shortCut,onAction})=>hotkeys(shortCut,onAction))
-  },[children])
-
-  const onHeaderItemClick = (e, Item,idx) => {
-    e.preventDefault()
-    e.stopPropagation()
-
-    openPath[0] === idx && !mouseIsOn ? setOpenPath([]) : setOpenPath([idx])
-    setmouseIsOn(true)
-  }
-
-  const onMouseUpItem = (e, Item, idx, currentPath) => {
-    e.stopPropagation();
-    e.preventDefault();
-
-    const slicedOpenPath = openPath.slice(0,currentPath.length);
-    const { props: { children } } = Item
-    children ? setOpenPath([...slicedOpenPath,idx]) : setOpenPath([])
-    setmouseIsOn(false)
-    Item.props.onAction?.();
-  }
-
-  function onMouseOver(e,c,idx,currentPath) {
-    e.stopPropagation()
-    e.preventDefault()
-
-    const slicedOpenPath = openPath.slice(0,currentPath.length);
-    setOpenPath([...slicedOpenPath,idx])
-  }
-
-  const onTouchMoveItem = (e) => {
-    e.stopPropagation()
-    e.preventDefault()
-    const { touches,touches:[{clientX,clientY}={}]=[] } = e;
-
-    if (!openPath.length && !mouseIsOn) return;
-    if (touches) {
-      const newTarget = document.elementFromPoint(clientX,clientY);
-      newTarget.dispatchEvent(new Event('mouseover',{bubbles: true,}))
-    }
-  }
-  
-  const onTouchEndItem = (e) => {
-    const { target, touches,changedTouches:[{clientX,clientY}={}]=[] } = e;
-    
-    const newTarget = document.elementFromPoint(clientX,clientY);
-    if (touches && newTarget !== target) {
-      newTarget.dispatchEvent(new Event('mouseup',{bubbles: true,}))
-    }
-  }
-
-
-  useEffect(()=>{
-    if (openPath.length) {
-      window.addEventListener('keydown',onKeydown)
-      return () => window.removeEventListener('keydown',onKeydown)
-    }
-  },[openPath])
-
-
-  function AddCallBackToItems(children,[pathidx,...restPath],currentPath=[]) {
-
-    const childrenWithCb = children.map((c,idx)=>React.cloneElement(c,{
-      idx,
-      onMouseOver: !!openPath.length ? e=> onMouseOver(e,c,idx,currentPath) : null,
-      onMouseDown : !currentPath.length && !('ontouchstart' in window) ? e => onHeaderItemClick(e,c,idx,currentPath) :null,
-      onTouchStart: !currentPath.length ? e => onHeaderItemClick(e,c,idx,currentPath, openPath) : null,
-      onMouseUp: !!currentPath.length ? e=> onMouseUpItem(e,c,idx,currentPath) : ()=> setmouseIsOn(false),
-      onTouchMove: e => onTouchMoveItem(e,c,idx,currentPath),
-      onTouchEnd: e => onTouchEndItem(e,c),
-      isOpen:idx === pathidx,
-      isTopLevel: currentPath.length === 0,
-      ...c.props,
-    },idx === pathidx ? AddCallBackToItems(React.Children.toArray(c.props.children),restPath,[...currentPath,pathidx]) : c.props.children))
-    return childrenWithCb;
-  }
-
-  const ChildrenWithCallback = AddCallBackToItems(React.Children.toArray(children),openPath);
-
-  const onKeydown = (e) => {
-    function loopChildren(childs, [pathidx,...restPath]) {
-      if (!restPath.length) {
-        return childs[pathidx].props.children
-      }
-      return loopChildren(childs[pathidx].props.children,restPath)
-    }
-
-    if (e.key === "ArrowDown") {
-      if (openPath.length === 1 && direction === 'horizontal') {
-        setOpenPath([...openPath,0])
-      }
-      if (openPath.length > 1) {
-        const slicedOpenPath = openPath.slice(0,openPath.length - 1)
-        const lastPath  = openPath.pop();
-        const currentChildren = loopChildren(children,slicedOpenPath)
-        currentChildren.length - 1 > lastPath ? setOpenPath([...slicedOpenPath,lastPath + 1]) : setOpenPath([...slicedOpenPath,0])
-
-      }
-    }
-    if (e.key === "ArrowUp" && openPath.length > 1) {
-      const slicedOpenPath = openPath.slice(0,openPath.length - 1)
-      const lastPath  = openPath.pop();
-      const currentChildren = loopChildren(children,slicedOpenPath)
-      if (currentChildren.length) {
-        lastPath === 0 ? setOpenPath([...slicedOpenPath, currentChildren.length - 1]) : setOpenPath([...slicedOpenPath, lastPath - 1])
-        
-      }
-    }
-    if (e.key === "ArrowLeft") {
-      if (openPath.length === 1 && direction === 'horizontal') {
-        0 === openPath[0] ? setOpenPath([children.length - 1]) : setOpenPath([openPath[0] - 1])
-      }
-      if (openPath.length > 1) {
-        setOpenPath(openPath.slice(0,openPath.length - 1))
-        // 0 === openPath[0] ? setOpenPath([children.length - 1]) : setOpenPath([openPath[0] - 1])
-        setOpenPath([...openPath.slice(0,openPath.length - 1)])
-
-      }
-    }   
-    if (e.key === "ArrowRight") {
-      if (openPath.length === 1 && direction === 'horizontal') {
-        children.length - 1 === openPath[0] ? setOpenPath([0]) : setOpenPath([openPath[0] + 1])
-      }
-      if(openPath.length > 1) {
-        const currentChildren = loopChildren(children,openPath);
-        if (currentChildren) setOpenPath([...openPath,0])
-        
-      }
-    }
-    if (e.key === "Enter") {
-      const currentChildren = loopChildren(ChildrenWithCallback, openPath.length > 1 ? openPath.slice(0,openPath.length - 1) : openPath);
-      const currentItem = currentChildren[openPath.pop()]
-      currentItem.props.onMouseUp?.(e)
-    }
-  }
-
-
-
-  return html`
-    <p>openPath : ${openPath.toString()}</p>
-    <${StyledDopDownMenu} className=${className} ref=${dropDownRef} direction=${direction}>
-      ${ChildrenWithCallback}
-    </${StyledDopDownMenu}>
-  
-  `
-}
 
 
 const StyledItem = styled.div`
@@ -623,54 +480,6 @@ const StyledItem = styled.div`
 
 StyledItem.displayName = 'StyledItem'
 
-const MenuItemOld = React.forwardRef(({ name, body, className, children, isTopLevel,key,shortCut,isOpen, ...restProps },refBefore) => {
-  const ref = useRef(null)
-  const [isVisible, setIsVisible] = useState(false)
-
-  useEffect(()=>{
-    setIsVisible(true)
-  },[ref])
-
-  const { top, bottom, height, left, right, width} = ref?.current?.getBoundingClientRect?.() ?? {}
-
-  return html`
-              <${StyledItem} 
-                className=${className}
-                direction=${isTopLevel ? 'horizontal' : 'vertical'}
-                ...${restProps}
-                ref=${ref}
-                key=${key}
-                isTopLevel=${isTopLevel}
-                isOpen=${isOpen}
-              >
-                  ${name ?? null}
-                  ${body ? React.cloneElement(body,{...body.props},body.props.children) : null}
-                  ${shortCut ? html`<span>${shortCut.replaceAll('+',' ')}</span>` :null}
-                  ${!isTopLevel && children?.length ? html`<${ArrowDropRight} size='12' />`:null}
-                  ${isOpen? 
-                    html`
-                      <${StyledPanel} top=${isTopLevel ? height : undefined} left=${!isTopLevel ? width + 2 : undefined} visibility=${isVisible} >
-                       ${children}
-                      </${StyledPanel}> 
-                    `
-                    : null}
-              </${StyledItem}>
-              `
-})
-MenuItem.displayName = 'MenuItem'
-
-function MenuSearch({searchTerm, setSearchTerm, searchItem, setFlashPath}) {
-  const [value, setValue] = useState('')
-  const Inputsearch =  html`
-   <input style=${{width:'80%',minWidth:'100px'}} onKeyDown=${e=>e.stopPropagation()} onChange=${({target})=>setValue(target.value)} value=${value} type="text" autofocus/>
-  `
-  return html`
-  <${MenuItem} body=${Inputsearch} onMouseOver=${e=> e.stopPropagation()} onMouseDown=${e=> e.stopPropagation()} onMouseUp=${e=> e.stopPropagation()}>
-  </${MenuItem}>
-  <${MenuItem} name="Search Item" onAction=${(a)=>console.log('Search Item',a)} shortCut=${'alt+1'}/>
-  `
-}
-
 const StyledCenteredSelect = styled.div`
   display: inline-block;
   position: relative;
@@ -716,11 +525,17 @@ const StyledChevronUpDown = styled(ChevronUpDown)`
  `
 
 function CenteredSelect({children}) {
+  const centeredSelectRef = useRef(null)
   const [ref, setRef] = useState(null);
   const [refList, setRefList] = useState(null);
   const [isOpen, toggleIsOpen] = useState(false)
   const selectedFromProps  = children?.filter(c=>!!c.props.selected)[0] ?? children[0]
   const [selected, setSelected] = useState(selectedFromProps)
+
+
+  useOnclickOutside(() => {
+      toggleIsOpen(false)
+    },{disabled: !isOpen ,refs:[centeredSelectRef]});
 
   const onSelect = (e, OptionComp) => {
     e.stopPropagation()
@@ -728,11 +543,35 @@ function CenteredSelect({children}) {
     toggleIsOpen(false)
   }
 
+  const onKeyDown = (e) => {
+    console.log('select key',e.code)
+    if (e.code === 'Escape') {
+      return toggleIsOpen(false);
+    }
+    if (e.code === 'Enter') {
+      return toggleIsOpen(false);
+    }
+    if (e.code === 'ArrowUp') {
+      const CurrentIndex = children?.indexOf(selectedFromProps);
+      return toggleIsOpen(false);
+    }
+    if (e.code === 'ArrowDown') {
+      return toggleIsOpen(false);
+    }
+  }
+
   const listVisibility = isOpen && !!refList?.getBoundingClientRect().height && !!ref?.getBoundingClientRect().height;
   const Δy = ref?.getBoundingClientRect().y - refList?.getBoundingClientRect().y;
 
   return html`  
-    <${StyledCenteredSelect} onMouseUp=${e=>{e.stopPropagation();return false}} onTouchStart=${()=>toggleIsOpen(!isOpen)}  onMouseDown=${()=>toggleIsOpen(!isOpen)}>
+    <${StyledCenteredSelect} 
+        tabIndex='0' 
+        onKeyDown=${onKeyDown} 
+        onMouseUp=${e=>{e.stopPropagation();return false}} 
+        onTouchStart=${()=>toggleIsOpen(!isOpen)} 
+        onMouseDown=${(e)=>{e.target.focus();toggleIsOpen(!isOpen)}}
+        ref=${centeredSelectRef}
+        >
       ${selected.props.children}
       <${StyledChevronUpDown} />
       ${
@@ -756,6 +595,69 @@ function CenteredSelect({children}) {
   `
 }
 
+const StyledToolBarContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding: 10px 0;
+  border-radius: 5px;
+  background: linear-gradient(to bottom, #000000 1%,#3f3f3f 1%,#3f3f3f 1%,#848484 5%,#161616 23%,#3f3f3f 34%,#161616 44%,#3f3f3f 50%,#7f7f7f 53%,#898989 54%,#2b2b2b 72%,#2b2b2b 72%,#2b2b2b 76%,#161616 77%,#2b2b2b 79%,#2b2b2b 79%);
+  background: linear-gradient(to bottom, #4c4c4c 0%,#595959 12%,#666666 25%,#474747 39%,#2c2c2c 50%,#000000 51%,#111111 60%,#2b2b2b 76%,#1c1c1c 91%,#131313 100%);
+  background: linear-gradient(to bottom, #1c1c1c 9%,#595959 18%,#595959 18%,#2b2b2b 24%,#666666 32%,#666666 32%,#111111 40%,#2c2c2c 47%,#131313 65%,#131313 65%,#000000 86%,#000000 86%,#4c4c4c 100%);
+  background: linear-gradient(to bottom, #1c1c1c 9%,#595959 18%,#595959 18%,#2b2b2b 24%,#111111 40%,#2c2c2c 47%,#131313 65%,#131313 65%,#000000 86%,#000000 86%,#4c4c4c 100%);
+  background: linear-gradient(to top, #1c1c1c 0%,#595959 2%,#595959 2%,#7f7f7f 18%,#111111 40%,#131313 65%,#131313 65%,#000000 86%,#000000 86%,#4c4c4c 100%);
+  background: linear-gradient(to bottom, #595959 0%,#666666 5%,#474747 18%,#2c2c2c 29%,#111111 60%,#1c1c1c 91%,#131313 100%);
+  background: linear-gradient(to bottom, #595959 1%,#727272 3%,#474747 6%,#474747 12%,#111111 49%,#000000 92%,#000000 100%);
+
+  
+  `
+
+const StyledListAlt = styled.div`
+  background-color: #00FF00;
+  background: linear-gradient(to bottom, #ff4bbd 0%,#ff3fb9 44%,#ff2bb1 100%);  border-radius: 50%;
+  width: 35px;
+  min-height: 35px;
+  max-height: 35px;
+  box-shadow: 0px 1px 8px 1px rgb(0 0 0) inset;
+
+  background: linear-gradient(to bottom, rgb(75 105 255) 0%,rgb(185 168 255) 10%,rgb(128 152 255) 17%,rgb(43 255 235) 100%);
+  box-shadow: rgb(247 197 56) 0px 1px 8px 1px inset;
+
+  font-family: 'Dangrek', cursive;
+  font-size: 31px;
+  line-height: 35px;
+  text-align: center;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  `
+const StyledIcon = styled.i`
+  font-size: 35px;
+  background: linear-gradient(to bottom, rgb(75 105 255) 0%,rgb(185 168 255) 10%,rgb(128 152 255) 17%,rgb(43 255 235) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 2px 4px 4px rgb(247 197 56);
+`
+
+const GlowTextButton = styled.div`
+border-radius: 50%;
+    width: 35px;
+    min-height: 35px;
+    max-height: 35px;
+    box-shadow: rgb(133 125 125) 0px 1px 8px 1px inset;
+    border: 3px solid #00000066;
+    outline: black 1px solid;
+    font-family: 'Dangrek', cursive;
+    font-size: 29px;
+    color: white;
+    text-align: center;
+    line-height: 38px;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background: linear-gradient(rgb(255 75 75) 0%, rgb(255 168 168) 10%, rgb(247 128 255) 17%, rgb(255 43 43) 100%);
+    -webkit-background-clip: text;
+
+`
+
 const App = () => html`
       <${React.Fragment}>
       <${TheHTML}/>
@@ -765,6 +667,7 @@ const App = () => html`
         <!-- <${StyledButton}> <${ShareApple}/> </${StyledButton}> -->
         <br/>
         <br/>
+        <${GlowTextButton}>X<//>
         <br/>
         <${DropDownMenu} direction='horizontal' multipleOpen=${false} zIndex=${1}>
           <${MenuItem}   name=${html`<span> File</span>`}> 
@@ -806,13 +709,7 @@ const App = () => html`
 
         </${DropDownMenu}>
         <br/>
-        "test un trc"
         <br/>
-        <select>
-          <option value="ex 1">ex1</option>
-          <option value="ex 2" selected>ex2</option>
-          <option value="ex 3">ex3</option>
-        </select>
 
         <${CenteredSelect}>
           <div value="ex 1" >ex1</div>
@@ -821,8 +718,15 @@ const App = () => html`
           <div value="ex 4" >ex4</div>
           <div value="ex 5" >ex5</div>
           <div value="ex 6" >ex6</div>
-
         </${CenteredSelect}>
+        <br/>
+        <br/>
+        <${StyledToolBarContainer}>
+          <${StyledListAlt}>W<//>
+          <i class="bi bi-textarea-t"></i>
+          <${StyledIcon} className="bi bi-disc" />
+          <${StyledIcon} className="bi bi-house-door-fill" />
+        </${StyledToolBarContainer}>
       </${ControlBox}>
       <//>
       `;
