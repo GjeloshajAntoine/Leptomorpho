@@ -10,6 +10,9 @@ import useOnclickOutside from 'https://cdn.skypack.dev/react-cool-onclickoutside
 // import useToggle from "https://cdn.skypack.dev/@react-hook/toggle"
 
 import { ChevronUpDown } from "https://cdn.skypack.dev/@styled-icons/fluentui-system-filled/ChevronUpDown";
+import * as FSR from "https://cdn.skypack.dev/@styled-icons/fluentui-system-regular";
+import { SaveAs } from "https://cdn.skypack.dev/@styled-icons/heroicons-solid/SaveAs";
+import * as FSF from "https://cdn.skypack.dev/@styled-icons/fluentui-system-filled"
 
 // mobileConsole.show()
 
@@ -658,6 +661,59 @@ border-radius: 50%;
 
 `
 
+const ChalkEffectSVGString = `
+<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="visibility: hidden;">
+  <defs>
+    <linearGradient id="lgrad" x1="0%" y1="50%" x2="100%" y2="50%">
+
+      <stop offset="0%" style="stop-color:rgb(244,0,255);stop-opacity:1.00"></stop>
+      <stop offset="100%" style="stop-color:rgb(255,0,0);stop-opacity:1.00"></stop>
+
+    </linearGradient>
+    <filter id="chalk" height="2" width="1.6" color-interpolation-filters="sRGB" y="-0.5" x="-0.3">
+      <feTurbulence baseFrequency="50" seed="115" result="result1" numOctaves="1" type="turbulence"/>
+      <feOffset result="result2" dx="-5" dy="-5"/>
+      <feDisplacementMap scale="1.5" yChannelSelector="G" in2="result1" xChannelSelector="R" in="SourceGraphic"/>
+      <feGaussianBlur stdDeviation="0.1"/>
+    </filter>
+  </defs>
+  <rect x="0" y="0" width="100%" height="100%" fill="url(#lgrad)"></rect>
+</svg>
+`
+const ChalkEffectSVG = () => html`
+  <div dangerouslySetInnerHTML=${{__html: ChalkEffectSVGString}} ></div>
+`
+
+const StyledChalkFilter = styled.div`
+  svg {
+    width: 20px;
+  }
+
+  & path {
+    color: #eae7e3;
+    filter: url(#chalk);  
+  }
+
+`
+
+const ApplyStyleToSvg = ({children}) => {
+  console.log(children);
+  console.log(children.props.children);
+  return React.cloneElement(children,children.props,children.props.children)
+  return children
+}
+
+const TestTree = ()=> html`
+  <div>
+    <p>
+      content
+    </p>
+    <span>
+      Truc
+    </span>
+  </div>
+`
+
 const App = () => html`
       <${React.Fragment}>
       <${TheHTML}/>
@@ -722,10 +778,27 @@ const App = () => html`
         <br/>
         <br/>
         <${StyledToolBarContainer}>
-          <${StyledListAlt}>W<//>
+          <${ChalkEffectSVG}/>
+          <${StyledChalkFilter}>
+            <${FSR.PositionToFront}/>
+            <${FSR.PanelLeft}/>
+            <${FSR.SelectObject}/>
+            <${SaveAs}/>
+            <${FSF.PanelBottom}/>
+            <${FSF.MultiselectLtr}/>
+            <${FSF.CopySelect}/>
+            <${FSF.SelectAllOn}/>
+            <${FSF.ArrowSquareDown}/>
+            <${FSF.AddSquare}/>
+            <${FSR.TextBold}/>
+          </{StyledChalkFilter}>
+
+          <--
+           <${StyledListAlt}>W<//>
           <i class="bi bi-textarea-t"></i>
           <${StyledIcon} className="bi bi-disc" />
           <${StyledIcon} className="bi bi-house-door-fill" />
+          -->
         </${StyledToolBarContainer}>
       </${ControlBox}>
       <//>
