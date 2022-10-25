@@ -86,32 +86,6 @@ const StyledButton = styled.button`
     outline: rgb(0, 0, 0) solid 1px;
     border: rgb(104 104 104) solid 1px;
   }
-
-  &::before {
-    content: "";
-    display: block;
-    width: 24px;
-    min-height: 26px;
-    border-top: 4px solid red;
-    border-radius: 16px;
-    transform: rotateZ(333deg);
-    position: absolute;
-    bottom: 0;
-    left: 0;
-  }
-
-  &::after{
-    content: '';
-    display: block;
-    width: 24px;
-    min-height: 26px;
-    border-top: 4px solid red;
-    border-radius: 16px;
-    transform: rotateZ(333deg);
-    position: absolute;
-    bottom: 0;
-    right: 0;
-  }
 `;
 
 
@@ -493,7 +467,7 @@ const StyledCenteredSelect = styled.div`
 `
 
 const StyledListSelect = styled.div`
-  display: block;
+  display: inline-block;
   position: absolute;
   left: 0; 
   right: 0; 
@@ -665,16 +639,27 @@ const ChalkEffectSVGString = `
 <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="visibility: hidden;">
   <defs>
     <linearGradient id="lgrad" x1="0%" y1="50%" x2="100%" y2="50%">
-
       <stop offset="0%" style="stop-color:rgb(244,0,255);stop-opacity:1.00"></stop>
       <stop offset="100%" style="stop-color:rgb(255,0,0);stop-opacity:1.00"></stop>
-
     </linearGradient>
     <filter id="chalk" height="2" width="1.6" color-interpolation-filters="sRGB" y="-0.5" x="-0.3">
       <feTurbulence baseFrequency="50" seed="115" result="result1" numOctaves="1" type="turbulence"/>
       <feOffset result="result2" dx="-5" dy="-5"/>
       <feDisplacementMap scale="1.5" yChannelSelector="G" in2="result1" xChannelSelector="R" in="SourceGraphic"/>
       <feGaussianBlur stdDeviation="0.1"/>
+    </filter>
+    <filter id="inset-shadow">
+      <!-- Shadow offset -->
+      <feOffset dx="4" dy="-2"></feOffset>
+      <!-- Shadow blur -->
+    <feGaussianBlur stdDeviation="2" result="offset-blur"></feGaussianBlur>
+      <!-- Invert drop shadow to make an inset shadow-->
+      <feComposite operator="out" in="SourceGraphic" in2="offset-blur" result="inverse"></feComposite>
+      <!-- Cut colour inside shadow -->
+      <feFlood flood-color="black" flood-opacity=".95" result="color"></feFlood>
+      <feComposite operator="in" in="color" in2="inverse" result="shadow"></feComposite>
+      <!-- Placing shadow over element -->
+      <feComposite operator="over" in="shadow" in2="SourceGraphic"></feComposite> 
     </filter>
   </defs>
   <rect x="0" y="0" width="100%" height="100%" fill="url(#lgrad)"></rect>
@@ -685,13 +670,19 @@ const ChalkEffectSVG = () => html`
 `
 
 const StyledChalkFilter = styled.div`
-  svg {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  & > svg {
     width: 20px;
   }
 
-  & path {
+  & > svg > path {
     color: #eae7e3;
     filter: url(#chalk);  
+    filter: url(#inset-shadow);
+    fill: #ff8d8d;
+}
   }
 
 `
@@ -780,6 +771,10 @@ const App = () => html`
         <${StyledToolBarContainer}>
           <${ChalkEffectSVG}/>
           <${StyledChalkFilter}>
+            <${FSF.ArrowAutofitUp}/>
+            <${FSF.ArrowCurveUpLeft}/>
+            <${FSF.ArrowUp}/>
+            <${FSF.ArrowDown}/>
             <${FSR.PositionToFront}/>
             <${FSR.PanelLeft}/>
             <${FSR.SelectObject}/>
@@ -791,14 +786,22 @@ const App = () => html`
             <${FSF.ArrowSquareDown}/>
             <${FSF.AddSquare}/>
             <${FSR.TextBold}/>
+            <${FSF.TextItalic}/>
+            <${FSF.TextUnderline}/>
+            <${FSF.ImageAdd}/>
+            <${FSF.ImageAltText}/>
+            <${CenteredSelect}>
+              <div value="ex 1">font 1</div>
+              <div value="ex 4" >ex4</div>
+            </${CenteredSelect}>
           </{StyledChalkFilter}>
 
-          <--
-           <${StyledListAlt}>W<//>
+          
+          <!--<${StyledListAlt}>W<//>
           <i class="bi bi-textarea-t"></i>
           <${StyledIcon} className="bi bi-disc" />
-          <${StyledIcon} className="bi bi-house-door-fill" />
-          -->
+          <${StyledIcon} className="bi bi-house-door-fill" />-->
+
         </${StyledToolBarContainer}>
       </${ControlBox}>
       <//>
