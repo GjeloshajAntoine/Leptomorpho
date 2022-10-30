@@ -13,7 +13,7 @@ import { ChevronUpDown } from "https://cdn.skypack.dev/@styled-icons/fluentui-sy
 import * as FSR from "https://cdn.skypack.dev/@styled-icons/fluentui-system-regular";
 import { SaveAs } from "https://cdn.skypack.dev/@styled-icons/heroicons-solid/SaveAs";
 import * as FSF from "https://cdn.skypack.dev/@styled-icons/fluentui-system-filled"
-
+import { Close } from "https://cdn.skypack.dev/@styled-icons/zondicons"
 // mobileConsole.show()
 
 // const html = htm.bind((type,props,...children)=>{/*console.log(type);*/return createElement(type,props,...children)});
@@ -478,6 +478,7 @@ const StyledListSelect = styled.div`
   top: ${({top=0})=> top}px;
   text-align:center;
   /* outline: 1px solid white; */
+  min-width: ${({minWidth})=>minWidth}px;
   width: calc(100% + 1px);
   * {
     padding: 0;
@@ -491,17 +492,18 @@ const StyledListSelect = styled.div`
 `
 const StyledChevronUpDown = styled(ChevronUpDown)`
   width: 12px;
+  height: 17px;
   margin-left: 5px;
   vertical-align: -1px !important;
-  border-radius: 6px;
-  padding: 1px;
-  background: linear-gradient(0deg, rgba(0,255,220,1) 0%, rgba(255,255,0,1) 100%);
-  border: 1px solid #80808078;
+  border-radius: 0px;
+  padding: 0 1px;
+/*   background: linear-gradient(0deg, rgba(0,255,220,1) 0%, rgba(255,255,0,1) 100%);*/
+  border-left: 1px solid #80808078;
   vertical-align: -3px !important;
 
  `
 
-function CenteredSelect({children}) {
+function CenteredSelect({children, className}) {
   const centeredSelectRef = useRef(null)
   const [ref, setRef] = useState(null);
   const [refList, setRefList] = useState(null);
@@ -548,12 +550,13 @@ function CenteredSelect({children}) {
         onTouchStart=${()=>toggleIsOpen(!isOpen)} 
         onMouseDown=${(e)=>{e.target.focus();toggleIsOpen(!isOpen)}}
         ref=${centeredSelectRef}
+        className=${className}
         >
       ${selected.props.children}
       <${StyledChevronUpDown} />
       ${
         isOpen ? html`
-          <${StyledListSelect} ref=${node=>{setRefList(node);return node;}} visibility=${listVisibility} top=${-Δy}>
+          <${StyledListSelect} ref=${node=>{setRefList(node);return node;}} minWidth=${centeredSelectRef.current?.getBoundingClientRect().width} visibility=${listVisibility} top=${-Δy}>
             ${
               children.map(c => React.cloneElement(c,{
                  ref: c === selected ? node => {children[0].props.ref?.(node);setRef(node)} : null,
@@ -572,21 +575,104 @@ function CenteredSelect({children}) {
   `
 }
 
+
+const StyledWindowDecoration = styled.div`
+  display: flex;
+  width: 100%;
+  background: black;
+  background: linear-gradient(to bottom, #595959 1%,#727272 3%,#474747 6%,#474747 12%,#111111 49%,#000000 92%,#000000 100%);
+  color: white;
+
+  ${StyledCenteredSelect}{
+    background: transparent;
+    width: max-content;
+    border: none;
+  }
+
+  ${StyledListSelect} {
+    color: black;
+    width: fit-content;
+  }
+`
+const StyledWindowDecorationLeft = styled.div`
+
+`
+const StyledWindowDecorationCenter = styled.div`
+  margin-left: auto;
+`
+const StyledWindowDecorationRight = styled.div`
+  margin-left: auto;
+  svg {
+    width: 16px;
+    padding: 4px;
+  }
+  svg  path {
+    filter: url(#inset-shadow);
+    stroke-width: 2px;
+  }
+  svg:hover{
+    filter: brightness(3);
+    cursor: pointer;
+  }
+
+`
+
+const StyledBlueMinimize = styled(FSF.ArrowMinimize)`
+    stroke: url(#rgrad);
+`
+const StyledBlueMaximize = styled(FSF.Maximize)`
+  stroke: url(#rgrad);
+`
+
+const StyledRedClose = styled(Close)`
+  stroke: url(#lgrad);
+`
+
+const WindowDecoration = ({title, onClose, onMinimize, onMaximize, onExpand, representedFilename,documentEdited}) => {
+    return html`
+      <${StyledWindowDecoration}>
+        <${StyledWindowDecorationLeft}>
+        </${StyledWindowDecorationLeft}>
+        <${StyledWindowDecorationCenter}>
+          ${!representedFilename?.length ? title : null}
+          ${!!representedFilename?.length ? html`
+            <${CenteredSelect}>
+              ${representedFilename.map((path,idx)=> html`<div  value="ex 3" selected=${!!idx}>${path}</div>`)}
+            </${CenteredSelect}>
+          ` : null}
+        </${StyledWindowDecorationCenter}>
+        <${StyledWindowDecorationRight}>
+            <${StyledBlueMinimize}/>
+            <${StyledBlueMaximize}/>
+            <${StyledRedClose}/>
+        </${StyledWindowDecorationRight}>
+      </${StyledWindowDecoration}>
+    `
+}
+
+const StyledNoiseBackGround = styled.div`
+background: black;
+
+`
+
 const StyledToolBarContainer = styled.div`
   display: flex;
   justify-content: center;
   width: 100%;
-  padding: 10px 0;
+  padding: 1px 0;
   border-radius: 5px;
-  background: linear-gradient(to bottom, #000000 1%,#3f3f3f 1%,#3f3f3f 1%,#848484 5%,#161616 23%,#3f3f3f 34%,#161616 44%,#3f3f3f 50%,#7f7f7f 53%,#898989 54%,#2b2b2b 72%,#2b2b2b 72%,#2b2b2b 76%,#161616 77%,#2b2b2b 79%,#2b2b2b 79%);
+  border-top: none;
+ /*  background: linear-gradient(to bottom, #000000 1%,#3f3f3f 1%,#3f3f3f 1%,#848484 5%,#161616 23%,#3f3f3f 34%,#161616 44%,#3f3f3f 50%,#7f7f7f 53%,#898989 54%,#2b2b2b 72%,#2b2b2b 72%,#2b2b2b 76%,#161616 77%,#2b2b2b 79%,#2b2b2b 79%);
   background: linear-gradient(to bottom, #4c4c4c 0%,#595959 12%,#666666 25%,#474747 39%,#2c2c2c 50%,#000000 51%,#111111 60%,#2b2b2b 76%,#1c1c1c 91%,#131313 100%);
   background: linear-gradient(to bottom, #1c1c1c 9%,#595959 18%,#595959 18%,#2b2b2b 24%,#666666 32%,#666666 32%,#111111 40%,#2c2c2c 47%,#131313 65%,#131313 65%,#000000 86%,#000000 86%,#4c4c4c 100%);
   background: linear-gradient(to bottom, #1c1c1c 9%,#595959 18%,#595959 18%,#2b2b2b 24%,#111111 40%,#2c2c2c 47%,#131313 65%,#131313 65%,#000000 86%,#000000 86%,#4c4c4c 100%);
   background: linear-gradient(to top, #1c1c1c 0%,#595959 2%,#595959 2%,#7f7f7f 18%,#111111 40%,#131313 65%,#131313 65%,#000000 86%,#000000 86%,#4c4c4c 100%);
   background: linear-gradient(to bottom, #595959 0%,#666666 5%,#474747 18%,#2c2c2c 29%,#111111 60%,#1c1c1c 91%,#131313 100%);
-  background: linear-gradient(to bottom, #595959 1%,#727272 3%,#474747 6%,#474747 12%,#111111 49%,#000000 92%,#000000 100%);
-
-  
+  background: linear-gradient(to bottom, #595959 1%,#727272 3%,#474747 6%,#474747 12%,#111111 49%,#000000 92%,#000000 100%); */
+/*   background: 
+    linear-gradient(20deg, #66339900, transparent), 
+    url(https://grainy-gradients.vercel.app/noise.svg); 
+  contrast(170%) brightness(1000%); */
   `
 
 const StyledListAlt = styled.div`
@@ -638,6 +724,10 @@ border-radius: 50%;
 const ChalkEffectSVGString = `
 <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="visibility: hidden;">
   <defs>
+    <radialGradient id="rgrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:rgb(0,72,255);stop-opacity:1.00"></stop>
+      <stop offset="100%" style="stop-color:rgb(0,255,235);stop-opacity:1.00"></stop>
+    </radialGradient>
     <linearGradient id="lgrad" x1="0%" y1="50%" x2="100%" y2="50%">
       <stop offset="0%" style="stop-color:rgb(244,0,255);stop-opacity:1.00"></stop>
       <stop offset="100%" style="stop-color:rgb(255,0,0);stop-opacity:1.00"></stop>
@@ -650,13 +740,13 @@ const ChalkEffectSVGString = `
     </filter>
     <filter id="inset-shadow">
       <!-- Shadow offset -->
-      <feOffset dx="4" dy="-2"></feOffset>
+      <feOffset dx="3" dy="3"></feOffset>
       <!-- Shadow blur -->
-    <feGaussianBlur stdDeviation="2" result="offset-blur"></feGaussianBlur>
+    <feGaussianBlur stdDeviation="4" result="offset-blur"></feGaussianBlur>
       <!-- Invert drop shadow to make an inset shadow-->
       <feComposite operator="out" in="SourceGraphic" in2="offset-blur" result="inverse"></feComposite>
       <!-- Cut colour inside shadow -->
-      <feFlood flood-color="black" flood-opacity=".95" result="color"></feFlood>
+      <feFlood flood-color="black" flood-opacity="0.9" result="color" style=""></feFlood>
       <feComposite operator="in" in="color" in2="inverse" result="shadow"></feComposite>
       <!-- Placing shadow over element -->
       <feComposite operator="over" in="shadow" in2="SourceGraphic"></feComposite> 
@@ -673,17 +763,31 @@ const StyledChalkFilter = styled.div`
   display: flex;
   justify-content: center;
   width: 100%;
-  & > svg {
-    width: 20px;
+
+  > svg {
+    width: 19px;
   }
 
-  & > svg > path {
-    color: #eae7e3;
-    filter: url(#chalk);  
+  svg > path {
     filter: url(#inset-shadow);
-    fill: #ff8d8d;
-}
+    fill: #eae7e3;
   }
+
+  svg:hover {
+    cursor: pointer;
+  }
+  svg:hover > path {
+    filter: brightness(1.9);
+    transform: translateY(3px);  
+  }
+  
+`
+
+const StyledToolBarGroup = styled(StyledChalkFilter)`
+    width: fit-content;
+    border: 2px solid #858585;
+    border-radius: 7px;
+    margin-right: 53px;
 
 `
 
@@ -768,41 +872,47 @@ const App = () => html`
         </${CenteredSelect}>
         <br/>
         <br/>
-        <${StyledToolBarContainer}>
-          <${ChalkEffectSVG}/>
-          <${StyledChalkFilter}>
-            <${FSF.ArrowAutofitUp}/>
-            <${FSF.ArrowCurveUpLeft}/>
-            <${FSF.ArrowUp}/>
-            <${FSF.ArrowDown}/>
-            <${FSR.PositionToFront}/>
-            <${FSR.PanelLeft}/>
-            <${FSR.SelectObject}/>
-            <${SaveAs}/>
-            <${FSF.PanelBottom}/>
-            <${FSF.MultiselectLtr}/>
-            <${FSF.CopySelect}/>
-            <${FSF.SelectAllOn}/>
-            <${FSF.ArrowSquareDown}/>
-            <${FSF.AddSquare}/>
-            <${FSR.TextBold}/>
-            <${FSF.TextItalic}/>
-            <${FSF.TextUnderline}/>
-            <${FSF.ImageAdd}/>
-            <${FSF.ImageAltText}/>
-            <${CenteredSelect}>
-              <div value="ex 1">font 1</div>
-              <div value="ex 4" >ex4</div>
-            </${CenteredSelect}>
-          </{StyledChalkFilter}>
 
-          
-          <!--<${StyledListAlt}>W<//>
-          <i class="bi bi-textarea-t"></i>
-          <${StyledIcon} className="bi bi-disc" />
-          <${StyledIcon} className="bi bi-house-door-fill" />-->
+        <${WindowDecoration} title="App example" representedFilename=${['file.example','Folder','Documents']}/>
+        <${StyledNoiseBackGround}>
+          <${StyledToolBarContainer}>
+            <${ChalkEffectSVG}/>
+            <${StyledChalkFilter}>
+              <${StyledToolBarGroup}>
+                <${FSF.ArrowAutofitUp}/>
+                <${FSF.ArrowCurveUpLeft}/>
+                <${FSF.ArrowUp}/>
+                <${FSF.ArrowDown}/>
+                <${FSR.PositionToFront}/>
+              </${StyledToolBarGroup}>
+              <${FSR.PanelLeft}/>
+              <${FSR.SelectObject}/>
+              <${SaveAs}/>
+              <${FSF.PanelBottom}/>
+              <${FSF.MultiselectLtr}/>
+              <${FSF.CopySelect}/>
+              <${FSF.SelectAllOn}/>
+              <${FSF.ArrowSquareDown}/>
+              <${FSF.AddSquare}/>
+              <${FSR.TextBold}/>
+              <${FSF.TextItalic}/>
+              <${FSF.TextUnderline}/>
+              <${FSF.ImageAdd}/>
+              <${FSF.ImageAltText}/>
+              <${CenteredSelect}>
+                <div value="ex 1">font 1</div>
+                <div value="ex 4" >ex4</div>
+              </${CenteredSelect}>
+            </{StyledChalkFilter}>
 
-        </${StyledToolBarContainer}>
+            
+            <!--<${StyledListAlt}>W<//>
+            <i class="bi bi-textarea-t"></i>
+            <${StyledIcon} className="bi bi-disc" />
+            <${StyledIcon} className="bi bi-house-door-fill" />-->
+
+          </${StyledToolBarContainer}>
+        </${StyledNoiseBackGround}>
       </${ControlBox}>
       <//>
       `;
