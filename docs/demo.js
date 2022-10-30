@@ -1,19 +1,19 @@
-import React, { createElement, useEffect, useMemo, useRef, useState } from "https://cdn.skypack.dev/react";
-import { render } from "https://cdn.skypack.dev/react-dom";
-import htm from "https://cdn.skypack.dev/htm";
-import styled, { createGlobalStyle, css } from "https://cdn.skypack.dev/styled-components@5.0";
+import React, { createElement, useEffect, useMemo, useRef, useState } from "https://esm.sh/react";
+import { render } from "https://esm.sh/react-dom";
+import htm from "https://esm.sh/htm";
+import styled, { createGlobalStyle, css } from "https://esm.sh/styled-components@5.0";
 
-import { ShareApple } from "https://cdn.skypack.dev/@styled-icons/evil";
-import { ArrowDropRight } from "https://cdn.skypack.dev/@styled-icons/remix-fill/ArrowDropRight";
-import hotkeys from 'https://cdn.skypack.dev/hotkeys-js';
-import useOnclickOutside from 'https://cdn.skypack.dev/react-cool-onclickoutside';
-// import useToggle from "https://cdn.skypack.dev/@react-hook/toggle"
+import { ShareApple } from "https://esm.sh/@styled-icons/evil";
+import { ArrowDropRight } from "https://esm.sh/@styled-icons/remix-fill/ArrowDropRight";
+import hotkeys from 'https://esm.sh/hotkeys-js';
+import useOnclickOutside from 'https://esm.sh/react-cool-onclickoutside';
+// import useToggle from "https://esm.sh/@react-hook/toggle"
 
-import { ChevronUpDown } from "https://cdn.skypack.dev/@styled-icons/fluentui-system-filled/ChevronUpDown";
-import * as FSR from "https://cdn.skypack.dev/@styled-icons/fluentui-system-regular";
-import { SaveAs } from "https://cdn.skypack.dev/@styled-icons/heroicons-solid/SaveAs";
-import * as FSF from "https://cdn.skypack.dev/@styled-icons/fluentui-system-filled"
-import { Close } from "https://cdn.skypack.dev/@styled-icons/zondicons"
+import { ChevronUpDown } from "https://esm.sh/@styled-icons/fluentui-system-filled/ChevronUpDown";
+import * as FSR from "https://esm.sh/@styled-icons/fluentui-system-regular";
+import { SaveAs } from "https://esm.sh/@styled-icons/heroicons-solid/SaveAs";
+import * as FSF from "https://esm.sh/@styled-icons/fluentui-system-filled"
+import { Close } from "https://esm.sh/@styled-icons/zondicons"
 // mobileConsole.show()
 
 // const html = htm.bind((type,props,...children)=>{/*console.log(type);*/return createElement(type,props,...children)});
