@@ -45,7 +45,7 @@ const ControlBox = styled.div`
 
 const buttonColor = 'rgb(255 246 219)';
 
-const StyledButton = styled.button`
+export const StyledButton = styled.button`
 	border: none;
 	padding: 0;
 	font: inherit;
@@ -89,16 +89,16 @@ const StyledButton = styled.button`
 `;
 
 
-const directionToFlex = ({ direction }) => ({ horizontal: 'row', vertical: 'column' }[direction] ?? 'row')
+export const directionToFlex = ({ direction }) => ({ horizontal: 'row', vertical: 'column' }[direction] ?? 'row')
 
-const StyledDopDownMenu = styled.div`
+export const StyledDopDownMenu = styled.div`
   display: flex;
   flex-direction :${directionToFlex};
   gap : 3px;
 
 `
 
-const FloatTo = ({children, direction}) => {
+export const FloatTo = ({children, direction}) => {
   const [props, setProps] = useState({ visibility: 'hidden' })
   const [ref, setRef] = useState(null)
   const ClonedTo = React.cloneElement(children[0],{ref: (node => {children[0].props.ref?.(node);setRef(node)})},children[0].props.children)
@@ -125,7 +125,7 @@ const FloatTo = ({children, direction}) => {
 
 }
 
-const StyledDopDownMenuPanel = styled.div`
+export const StyledDopDownMenuPanel = styled.div`
   display: flex;
   flex-direction :${directionToFlex};
   gap : 3px;
@@ -148,7 +148,7 @@ const StyledDopDownMenuPanel = styled.div`
   `};
 `
 
-const DropDownMenu = React.forwardRef(({children, direction = 'vertical', isTopLevel=true,multiOpen = false, focusFromUpper= false,allTopChildren=[],subSetmouseIsOn= false, top= null,left=null,bottom=null,UppercloseAll=null,UpperRef=null },forRef) => { //Menu And Panel combined, nestable
+export const DropDownMenu = React.forwardRef(({children, direction = 'vertical', isTopLevel=true,multiOpen = false, focusFromUpper= false,allTopChildren=[],subSetmouseIsOn= false, top= null,left=null,bottom=null,UppercloseAll=null,UpperRef=null },forRef) => { //Menu And Panel combined, nestable
   const [ mouseIsOn, setmouseIsOn] = useState(subSetmouseIsOn);
   const [openItem, setOpenItem] = useState([]); // Array because you can optionaly open many menu item of the same level : props.multiOpen
   const [flashPath, setFlashPath] = useState([])
@@ -347,7 +347,7 @@ const DropDownMenu = React.forwardRef(({children, direction = 'vertical', isTopL
 
 
 
-const StyledMenuItem = styled.div`
+export const StyledMenuItem = styled.div`
   font-size: 13px;
   font-family:'-apple-system';
   display: flex;
@@ -359,7 +359,7 @@ const StyledMenuItem = styled.div`
   filter: ${({isOpen})=> isOpen ? 'invert(1)': null};
 `
 
-const MenuItem = React.forwardRef(({name,hasSubMenu,isTopLevel,shortCut, ...props},reref)=>{
+export const MenuItem = React.forwardRef(({name,hasSubMenu,isTopLevel,shortCut, ...props},reref)=>{
 
   return html`
     <${StyledMenuItem} ref=${reref} ...${props}>
@@ -373,7 +373,7 @@ const MenuItem = React.forwardRef(({name,hasSubMenu,isTopLevel,shortCut, ...prop
 })
 
 
-const SearchMenu = React.forwardRef(({allTopChildren = [], ...props},forwardedRef)=> {
+export const SearchMenu = React.forwardRef(({allTopChildren = [], ...props},forwardedRef)=> {
   const [searchTerm, setSearchTerm] = useState('')
 
   const extractPropsChildrenAllLevel = Array.from(allTopChildren)
@@ -400,7 +400,7 @@ const SearchMenu = React.forwardRef(({allTopChildren = [], ...props},forwardedRe
 
 
 
-const StyledItem = styled.div`
+export const StyledItem = styled.div`
   font-size: 12px;
   font-family:'-apple-system';
   display: flex;
@@ -457,7 +457,7 @@ const StyledItem = styled.div`
 
 StyledItem.displayName = 'StyledItem'
 
-const StyledCenteredSelect = styled.div`
+export const StyledCenteredSelect = styled.div`
   display: inline-block;
   position: relative;
   border: 1px solid gray;
@@ -466,7 +466,7 @@ const StyledCenteredSelect = styled.div`
   user-select: none;
 `
 
-const StyledListSelect = styled.div`
+export const StyledListSelect = styled.div`
   display: inline-block;
   position: absolute;
   left: 0; 
@@ -490,7 +490,7 @@ const StyledListSelect = styled.div`
     background-color: inherit;
   }
 `
-const StyledChevronUpDown = styled(ChevronUpDown)`
+export const StyledChevronUpDown = styled(ChevronUpDown)`
   width: 12px;
   height: 17px;
   margin-left: 5px;
@@ -503,7 +503,7 @@ const StyledChevronUpDown = styled(ChevronUpDown)`
 
  `
 
-function CenteredSelect({children, className}) {
+export function CenteredSelect({children, className}) {
   const centeredSelectRef = useRef(null)
   const [ref, setRef] = useState(null);
   const [refList, setRefList] = useState(null);
@@ -576,7 +576,7 @@ function CenteredSelect({children, className}) {
 }
 
 
-const StyledWindowDecoration = styled.div`
+export const StyledWindowDecoration = styled.div`
   display: flex;
   width: 100%;
   background: black;
@@ -594,13 +594,13 @@ const StyledWindowDecoration = styled.div`
     width: fit-content;
   }
 `
-const StyledWindowDecorationLeft = styled.div`
+export const StyledWindowDecorationLeft = styled.div`
 
 `
-const StyledWindowDecorationCenter = styled.div`
+export const StyledWindowDecorationCenter = styled.div`
   margin-left: auto;
 `
-const StyledWindowDecorationRight = styled.div`
+export const StyledWindowDecorationRight = styled.div`
   margin-left: auto;
   svg {
     width: 16px;
@@ -617,18 +617,18 @@ const StyledWindowDecorationRight = styled.div`
 
 `
 
-const StyledBlueMinimize = styled(FSF.ArrowMinimize)`
+export const StyledBlueMinimize = styled(FSF.ArrowMinimize)`
     stroke: url(#rgrad);
 `
-const StyledBlueMaximize = styled(FSF.Maximize)`
+export const StyledBlueMaximize = styled(FSF.Maximize)`
   stroke: url(#rgrad);
 `
 
-const StyledRedClose = styled(Close)`
+export const StyledRedClose = styled(Close)`
   stroke: url(#lgrad);
 `
 
-const WindowDecoration = ({title, onClose, onMinimize, onMaximize, onExpand, representedFilename,documentEdited}) => {
+export const WindowDecoration = ({title, onClose, onMinimize, onMaximize, onExpand, representedFilename,documentEdited}) => {
     return html`
       <${StyledWindowDecoration}>
         <${StyledWindowDecorationLeft}>
@@ -650,12 +650,12 @@ const WindowDecoration = ({title, onClose, onMinimize, onMaximize, onExpand, rep
     `
 }
 
-const StyledNoiseBackGround = styled.div`
+export const StyledNoiseBackGround = styled.div`
 background: black;
 
 `
 
-const StyledToolBarContainer = styled.div`
+export const StyledToolBarContainer = styled.div`
   display: flex;
   justify-content: center;
   width: 100%;
@@ -675,7 +675,7 @@ const StyledToolBarContainer = styled.div`
   contrast(170%) brightness(1000%); */
   `
 
-const StyledListAlt = styled.div`
+export const StyledListAlt = styled.div`
   background-color: #00FF00;
   background: linear-gradient(to bottom, #ff4bbd 0%,#ff3fb9 44%,#ff2bb1 100%);  border-radius: 50%;
   width: 35px;
@@ -693,7 +693,7 @@ const StyledListAlt = styled.div`
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   `
-const StyledIcon = styled.i`
+export const StyledIcon = styled.i`
   font-size: 35px;
   background: linear-gradient(to bottom, rgb(75 105 255) 0%,rgb(185 168 255) 10%,rgb(128 152 255) 17%,rgb(43 255 235) 100%);
   -webkit-background-clip: text;
@@ -783,7 +783,7 @@ const StyledChalkFilter = styled.div`
   
 `
 
-const StyledToolBarGroup = styled(StyledChalkFilter)`
+export const StyledToolBarGroup = styled(StyledChalkFilter)`
     width: fit-content;
     border: 2px solid #858585;
     border-radius: 7px;
@@ -809,7 +809,7 @@ const TestTree = ()=> html`
   </div>
 `
 
-const App = () => html`
+export const App = () => html`
       <${React.Fragment}>
       <${TheHTML}/>
       <${ControlBox}>
@@ -917,4 +917,7 @@ const App = () => html`
       <//>
       `;
 
-render(html`<${App}/>`, document.getElementById('app'));
+if (document.getElementById('app')) {
+  render(html`<${App}/>`, document.getElementById('app'));
+}
+
