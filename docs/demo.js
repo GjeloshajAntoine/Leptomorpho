@@ -809,7 +809,7 @@ const TestTree = ()=> html`
   </div>
 `
 
-export const App = () => html`
+export const Demo = () => html`
       <${React.Fragment}>
       <${TheHTML}/>
       <${ControlBox}>
@@ -916,8 +916,3 @@ export const App = () => html`
       </${ControlBox}>
       <//>
       `;
-
-if (document.getElementById('app')) {
-  render(html`<${App}/>`, document.getElementById('app'));
-}
-

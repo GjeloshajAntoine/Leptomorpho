@@ -11,9 +11,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Dangrek&display=swap" rel="stylesheet">
   </head>
   <body style="background-color: black;">
-  <div id="app"></div>
+  <div id="demo"></div>
    <!-- <script src="https://cdn.jsdelivr.net/gh/B1naryStudio/js-mobile-console/mobile-console.js"></script> -->
    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
-   <script src="demo.js" type="module"></script>
+   <script  type="module">
+      import {Demo} from './demo.js';
+      import { render } from "https://esm.sh/react-dom";
+      import  { createElement } from "https://esm.sh/react";
+
+      render(createElement(Demo), document.getElementById('demo'));
+   </script>
   </body>
 </html>
