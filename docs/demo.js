@@ -916,3 +916,5 @@ export const Demo = () => html`
       </${ControlBox}>
       <//>
       `;
+
+render(createElement(Demo), document.getElementById('demo'));
