@@ -35,7 +35,7 @@ export const httpImports = (options: Options = {}): Plugin => ({
                 console.log('exclude /. ',importer);
                 console.log(path);
                 
-                return { path:`https://esm.sh${path}`, external: true }
+                return { path:path.substring(1), external: true }
             }    
             return{ path: new URL(path.replace(/\?.*/, ""), importer).toString(), namespace }
         });

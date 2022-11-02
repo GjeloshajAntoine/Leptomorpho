@@ -8,14 +8,15 @@
 </head>
 <body>
     <div id="app"></div>
+    auto demo
     <div id="demo"></div>
     <script type="module">
-      import {Demo} from 'https://esm.sh/leptomorpho@0.0.6/docs/demo.esbuildeno.js';
-      console.log(Demo);
-      import { render } from "https://esm.sh/react-dom";
       import  { createElement } from "https://esm.sh/react";
+      import { render } from "https://esm.sh/react-dom";
+      import Demo from 'https://esm.sh/v96/leptomorpho@0.0.7/es2022/docs/demo.esbuildeno.js';
+      console.log(Demo);
 
-      render(createElement(Demo), document.getElementById('app'));
+      render(createElement(Demo.Demo), document.getElementById('app'));
       // import './demo.esbuildeno.js';
     </script>
 </body>
