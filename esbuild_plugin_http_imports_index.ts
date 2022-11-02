@@ -25,17 +25,17 @@ export const httpImports = (options: Options = {}): Plugin => ({
             if (build.initialOptions.external.some(ext => path.endsWith(ext) || path.endsWith(`${ext}.js`))) {
                 console.log('exclude http');
                 console.log(path);
-                
-                return { path, external: true }
+                const ImportWithoutDomain = path.split('/').at(-1)
+                return { path:`/${ImportWithoutDomain}`, external: true }
             }
             return({ path, namespace })
         });        
         build.onResolve({ filter: /.*/, namespace }, ({ path, importer }: OnResolveArgs) => {        
             if (build.initialOptions.external.some(ext => path.endsWith(ext) || path.endsWith(`${ext}.js`))) {
-                console.log('exclude /. ',importer);
+                console.log('exclude /. ');
                 console.log(path);
-                
-                return { path:path.substring(1), external: true }
+                const PackageName = build.initialOptions.external.filter(ext => path.endsWith(ext) || path.endsWith(`${ext}.js`))[0]
+                return { path:`/${PackageName}`, external: true }
             }    
             return{ path: new URL(path.replace(/\?.*/, ""), importer).toString(), namespace }
         });
