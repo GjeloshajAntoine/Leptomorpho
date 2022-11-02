@@ -22,15 +22,20 @@ export const httpImports = (options: Options = {}): Plugin => ({
     name: namespace,
     setup(build) {
         build.onResolve({ filter: /^https:\/\// }, ({ path }: OnResolveArgs) => {
-            console.log({path});
             if (build.initialOptions.external.some(ext => path.endsWith(ext) || path.endsWith(`${ext}.js`))) {
+                console.log('exclude http');
+                console.log(path);
+                
                 return { path, external: true }
             }
             return({ path, namespace })
         });        
         build.onResolve({ filter: /.*/, namespace }, ({ path, importer }: OnResolveArgs) => {        
             if (build.initialOptions.external.some(ext => path.endsWith(ext) || path.endsWith(`${ext}.js`))) {
-                return { path, external: true }
+                console.log('exclude /. ',importer);
+                console.log(path);
+                
+                return { path:`https://esm.sh${path}`, external: true }
             }    
             return{ path: new URL(path.replace(/\?.*/, ""), importer).toString(), namespace }
         });
