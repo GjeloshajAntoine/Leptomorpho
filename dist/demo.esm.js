@@ -1,5 +1,5 @@
 import $6jkqg$react, {createElement as $6jkqg$createElement, useState as $6jkqg$useState, useEffect as $6jkqg$useEffect, useRef as $6jkqg$useRef} from "react";
-import {render as $6jkqg$render} from "react-dom";
+import "react-dom";
 import $6jkqg$htm from "htm";
 import $6jkqg$styledcomponents, {css as $6jkqg$css, createGlobalStyle as $6jkqg$createGlobalStyle} from "styled-components";
 import {ShareApple as $6jkqg$ShareApple} from "@styled-icons/evil";
@@ -768,8 +768,7 @@ const $280f206debff4ffe$export$425ce3ef4cdbf755 = ()=>$280f206debff4ffe$var$html
         </${$280f206debff4ffe$export$ac6359d79df2e4d1}>
       </${$280f206debff4ffe$var$ControlBox}>
       <//>
-      `;
-(0, $6jkqg$render)(/*#__PURE__*/ (0, $6jkqg$createElement)($280f206debff4ffe$export$425ce3ef4cdbf755), document.getElementById("demo"));
+      `; // render(createElement(Demo), document.getElementById('demo'));
 
 
 export {$280f206debff4ffe$export$2d5d2ba3c7c8c40b as StyledButton, $280f206debff4ffe$export$bf2eeb11af6f5d5a as directionToFlex, $280f206debff4ffe$export$998804cc2e36d798 as StyledDopDownMenu, $280f206debff4ffe$export$16a345f05a2dba2e as FloatTo, $280f206debff4ffe$export$72c275ec29e1ae31 as StyledDopDownMenuPanel, $280f206debff4ffe$export$ee621bb1988a9f78 as DropDownMenu, $280f206debff4ffe$export$cae703c457e46f23 as StyledMenuItem, $280f206debff4ffe$export$2ce376c2cc3355c8 as MenuItem, $280f206debff4ffe$export$64c9c070e629d7f7 as SearchMenu, $280f206debff4ffe$export$79a5f0df7cc8c932 as StyledCenteredSelect, $280f206debff4ffe$export$1015dd8742183843 as StyledListSelect, $280f206debff4ffe$export$9c700a78418d6278 as StyledChevronUpDown, $280f206debff4ffe$export$febac173755e83ae as CenteredSelect, $280f206debff4ffe$export$81ea235131dcb164 as StyledWindowDecoration, $280f206debff4ffe$export$6ee7abe7a69f7b26 as StyledWindowDecorationLeft, $280f206debff4ffe$export$3d6e84015daa5f95 as StyledWindowDecorationCenter, $280f206debff4ffe$export$15ab87f38b10c1aa as StyledWindowDecorationRight, $280f206debff4ffe$export$b3e34364c4ea8f64 as StyledBlueMinimize, $280f206debff4ffe$export$6ca5f910bccde432 as StyledBlueMaximize, $280f206debff4ffe$export$d8681c40c8984cea as StyledRedClose, $280f206debff4ffe$export$1e57c904ebe23308 as WindowDecoration, $280f206debff4ffe$export$ac6359d79df2e4d1 as StyledNoiseBackGround, $280f206debff4ffe$export$a70cad76d0b07bed as StyledToolBarContainer, $280f206debff4ffe$export$14876b2cda3a9ce0 as StyledToolBarGroup, $280f206debff4ffe$export$425ce3ef4cdbf755 as Demo};

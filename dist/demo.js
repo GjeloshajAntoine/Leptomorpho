@@ -1,5 +1,5 @@
 var $hyWpw$react = require("react");
-var $hyWpw$reactdom = require("react-dom");
+require("react-dom");
 var $hyWpw$htm = require("htm");
 var $hyWpw$styledcomponents = require("styled-components");
 var $hyWpw$stylediconsevil = require("@styled-icons/evil");
@@ -800,8 +800,7 @@ const $fa250ea826e3427e$export$425ce3ef4cdbf755 = ()=>$fa250ea826e3427e$var$html
         </${$fa250ea826e3427e$export$ac6359d79df2e4d1}>
       </${$fa250ea826e3427e$var$ControlBox}>
       <//>
-      `;
-(0, $hyWpw$reactdom.render)(/*#__PURE__*/ (0, $hyWpw$react.createElement)($fa250ea826e3427e$export$425ce3ef4cdbf755), document.getElementById("demo"));
+      `; // render(createElement(Demo), document.getElementById('demo'));
 
 
 //# sourceMappingURL=demo.js.map
