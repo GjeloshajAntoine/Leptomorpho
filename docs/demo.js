@@ -1,19 +1,16 @@
 import React, { createElement, useEffect, useMemo, useRef, useState } from "https://esm.sh/react";
 import { render } from "https://esm.sh/react-dom";
 import htm from "https://esm.sh/htm";
-import styled, { createGlobalStyle, css } from "https://esm.sh/styled-components@5.0";
+import styled, { createGlobalStyle, css } from "https://esm.sh/styled-components";
 
 import { ShareApple } from "https://esm.sh/@styled-icons/evil";
 import { ArrowDropRight } from "https://esm.sh/@styled-icons/remix-fill/ArrowDropRight";
 import hotkeys from 'https://esm.sh/hotkeys-js';
 import useOnclickOutside from 'https://esm.sh/react-cool-onclickoutside';
-// import useToggle from "https://esm.sh/@react-hook/toggle"
 
 import { ChevronUpDown } from "https://esm.sh/@styled-icons/fluentui-system-filled/ChevronUpDown";
-import * as FSR from "https://esm.sh/@styled-icons/fluentui-system-regular";
 import { SaveAs } from "https://esm.sh/@styled-icons/heroicons-solid/SaveAs";
 import * as FSF from "https://esm.sh/@styled-icons/fluentui-system-filled"
-import { Close } from "https://esm.sh/@styled-icons/zondicons"
 // mobileConsole.show()
 
 // const html = htm.bind((type,props,...children)=>{/*console.log(type);*/return createElement(type,props,...children)});
@@ -397,66 +394,6 @@ export const SearchMenu = React.forwardRef(({allTopChildren = [], ...props},forw
   `
 })
 
-
-
-
-export const StyledItem = styled.div`
-  font-size: 12px;
-  font-family:'-apple-system';
-  display: flex;
-  width: 100;
-  /* cursor: default; */
-  user-select: none;
-  position: relative;
-  white-space: nowrap;
-
-  ${({isTopLevel})=>isTopLevel? `
-    background-color: #eae7e3;
-    width: fit-content; 
-  `:`
-    width: 100%;
-    background-color: white;
-    font-weight:bold;
-    justify-content: space-between;
-  `};
-  
-  filter:${({isOpen})=>isOpen?`invert(100%)`:null}; 
-
-  ${({isTopLevel})=>!isTopLevel? `
-    &:hover, &:active{
-      filter:invert(100%);
-    }
-  `:null}
-  ${({isFlashed})=>isFlashed? `
-    &::before {
-      position: absolute;
-      content: "";
-      width: 15px;
-      height: 15px;
-      border-top-right-radius: 15px;
-      border-bottom-right-radius: 15px;
-      backdrop-filter: invert(1);
-    }
-    &::after {
-      position: absolute;
-      right: 0;
-      content: "";
-      width: 15px;
-      height: 15px;
-      border-top-left-radius: 15px;
-      border-bottom-left-radius: 15px;
-      backdrop-filter: invert(1);
-    }
-  ` : null};
-  gap : 12px;
-  gap: 18px;
-  &.active {
-    background-color: pink;
-  }
-`
-
-StyledItem.displayName = 'StyledItem'
-
 export const StyledCenteredSelect = styled.div`
   display: inline-block;
   position: relative;
@@ -592,6 +529,7 @@ export const StyledWindowDecoration = styled.div`
   ${StyledListSelect} {
     color: black;
     width: fit-content;
+    visibility: visible;
   }
 `
 export const StyledWindowDecorationLeft = styled.div`
@@ -624,8 +562,11 @@ export const StyledBlueMaximize = styled(FSF.Maximize)`
   stroke: url(#rgrad);
 `
 
-export const StyledRedClose = styled(Close)`
+export const StyledRedClose = styled(FSF.Dismiss)`
   stroke: url(#lgrad);
+  path {
+    stroke-width: 9px !important;
+  }
 `
 
 export const WindowDecoration = ({title, onClose, onMinimize, onMaximize, onExpand, representedFilename,documentEdited}) => {
@@ -637,7 +578,7 @@ export const WindowDecoration = ({title, onClose, onMinimize, onMaximize, onExpa
           ${!representedFilename?.length ? title : null}
           ${!!representedFilename?.length ? html`
             <${CenteredSelect}>
-              ${representedFilename.map((path,idx)=> html`<div  value="ex 3" selected=${!!idx}>${path}</div>`)}
+              ${representedFilename.map((path,idx)=> html`<div  value=${path} selected=${!!idx}>${path}</div>`)}
             </${CenteredSelect}>
           ` : null}
         </${StyledWindowDecorationCenter}>
@@ -651,8 +592,7 @@ export const WindowDecoration = ({title, onClose, onMinimize, onMaximize, onExpa
 }
 
 export const StyledNoiseBackGround = styled.div`
-background: black;
-
+  background: black;
 `
 
 export const StyledToolBarContainer = styled.div`
@@ -662,64 +602,7 @@ export const StyledToolBarContainer = styled.div`
   padding: 1px 0;
   border-radius: 5px;
   border-top: none;
- /*  background: linear-gradient(to bottom, #000000 1%,#3f3f3f 1%,#3f3f3f 1%,#848484 5%,#161616 23%,#3f3f3f 34%,#161616 44%,#3f3f3f 50%,#7f7f7f 53%,#898989 54%,#2b2b2b 72%,#2b2b2b 72%,#2b2b2b 76%,#161616 77%,#2b2b2b 79%,#2b2b2b 79%);
-  background: linear-gradient(to bottom, #4c4c4c 0%,#595959 12%,#666666 25%,#474747 39%,#2c2c2c 50%,#000000 51%,#111111 60%,#2b2b2b 76%,#1c1c1c 91%,#131313 100%);
-  background: linear-gradient(to bottom, #1c1c1c 9%,#595959 18%,#595959 18%,#2b2b2b 24%,#666666 32%,#666666 32%,#111111 40%,#2c2c2c 47%,#131313 65%,#131313 65%,#000000 86%,#000000 86%,#4c4c4c 100%);
-  background: linear-gradient(to bottom, #1c1c1c 9%,#595959 18%,#595959 18%,#2b2b2b 24%,#111111 40%,#2c2c2c 47%,#131313 65%,#131313 65%,#000000 86%,#000000 86%,#4c4c4c 100%);
-  background: linear-gradient(to top, #1c1c1c 0%,#595959 2%,#595959 2%,#7f7f7f 18%,#111111 40%,#131313 65%,#131313 65%,#000000 86%,#000000 86%,#4c4c4c 100%);
-  background: linear-gradient(to bottom, #595959 0%,#666666 5%,#474747 18%,#2c2c2c 29%,#111111 60%,#1c1c1c 91%,#131313 100%);
-  background: linear-gradient(to bottom, #595959 1%,#727272 3%,#474747 6%,#474747 12%,#111111 49%,#000000 92%,#000000 100%); */
-/*   background: 
-    linear-gradient(20deg, #66339900, transparent), 
-    url(https://grainy-gradients.vercel.app/noise.svg); 
-  contrast(170%) brightness(1000%); */
   `
-
-export const StyledListAlt = styled.div`
-  background-color: #00FF00;
-  background: linear-gradient(to bottom, #ff4bbd 0%,#ff3fb9 44%,#ff2bb1 100%);  border-radius: 50%;
-  width: 35px;
-  min-height: 35px;
-  max-height: 35px;
-  box-shadow: 0px 1px 8px 1px rgb(0 0 0) inset;
-
-  background: linear-gradient(to bottom, rgb(75 105 255) 0%,rgb(185 168 255) 10%,rgb(128 152 255) 17%,rgb(43 255 235) 100%);
-  box-shadow: rgb(247 197 56) 0px 1px 8px 1px inset;
-
-  font-family: 'Dangrek', cursive;
-  font-size: 31px;
-  line-height: 35px;
-  text-align: center;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  `
-export const StyledIcon = styled.i`
-  font-size: 35px;
-  background: linear-gradient(to bottom, rgb(75 105 255) 0%,rgb(185 168 255) 10%,rgb(128 152 255) 17%,rgb(43 255 235) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 2px 4px 4px rgb(247 197 56);
-`
-
-const GlowTextButton = styled.div`
-border-radius: 50%;
-    width: 35px;
-    min-height: 35px;
-    max-height: 35px;
-    box-shadow: rgb(133 125 125) 0px 1px 8px 1px inset;
-    border: 3px solid #00000066;
-    outline: black 1px solid;
-    font-family: 'Dangrek', cursive;
-    font-size: 29px;
-    color: white;
-    text-align: center;
-    line-height: 38px;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background: linear-gradient(rgb(255 75 75) 0%, rgb(255 168 168) 10%, rgb(247 128 255) 17%, rgb(255 43 43) 100%);
-    -webkit-background-clip: text;
-
-`
 
 const ChalkEffectSVGString = `
 <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="visibility: hidden;">
@@ -751,6 +634,12 @@ const ChalkEffectSVGString = `
       <!-- Placing shadow over element -->
       <feComposite operator="over" in="shadow" in2="SourceGraphic"></feComposite> 
     </filter>
+    <filter id="mauve-border" x="-20%" y="-20%" width="140%" height="140%" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse" color-interpolation-filters="linearRGB">
+      <feMorphology operator="dilate" radius="2 2" in="SourceAlpha" result="morphology"></feMorphology>
+      <feFlood flood-color="#476dff" flood-opacity="1" result="flood"></feFlood>
+      <feComposite in="flood" in2="morphology" operator="in" result="composite"></feComposite>
+      <feComposite in="composite" in2="SourceAlpha" operator="out" result="composite1"></feComposite>
+    </filter>
   </defs>
   <rect x="0" y="0" width="100%" height="100%" fill="url(#lgrad)"></rect>
 </svg>
@@ -771,6 +660,7 @@ const StyledChalkFilter = styled.div`
   svg > path {
     filter: url(#inset-shadow);
     fill: #eae7e3;
+    fill: url(#rgrad);
   }
 
   svg:hover {
@@ -788,25 +678,6 @@ export const StyledToolBarGroup = styled(StyledChalkFilter)`
     border: 2px solid #858585;
     border-radius: 7px;
     margin-right: 53px;
-
-`
-
-const ApplyStyleToSvg = ({children}) => {
-  console.log(children);
-  console.log(children.props.children);
-  return React.cloneElement(children,children.props,children.props.children)
-  return children
-}
-
-const TestTree = ()=> html`
-  <div>
-    <p>
-      content
-    </p>
-    <span>
-      Truc
-    </span>
-  </div>
 `
 
 export const Demo = () => html`
@@ -818,7 +689,6 @@ export const Demo = () => html`
         <!-- <${StyledButton}> <${ShareApple}/> </${StyledButton}> -->
         <br/>
         <br/>
-        <${GlowTextButton}>X<//>
         <br/>
         <${DropDownMenu} direction='horizontal' multipleOpen=${false} zIndex=${1}>
           <${MenuItem}   name=${html`<span> File</span>`}> 
@@ -883,10 +753,10 @@ export const Demo = () => html`
                 <${FSF.ArrowCurveUpLeft}/>
                 <${FSF.ArrowUp}/>
                 <${FSF.ArrowDown}/>
-                <${FSR.PositionToFront}/>
+                <${FSF.PositionToFront}/>
               </${StyledToolBarGroup}>
-              <${FSR.PanelLeft}/>
-              <${FSR.SelectObject}/>
+              <${FSF.PanelLeft}/>
+              <${FSF.SelectObject}/>
               <${SaveAs}/>
               <${FSF.PanelBottom}/>
               <${FSF.MultiselectLtr}/>
@@ -894,7 +764,7 @@ export const Demo = () => html`
               <${FSF.SelectAllOn}/>
               <${FSF.ArrowSquareDown}/>
               <${FSF.AddSquare}/>
-              <${FSR.TextBold}/>
+              <${FSF.TextBold}/>
               <${FSF.TextItalic}/>
               <${FSF.TextUnderline}/>
               <${FSF.ImageAdd}/>
@@ -904,13 +774,6 @@ export const Demo = () => html`
                 <div value="ex 4" >ex4</div>
               </${CenteredSelect}>
             </{StyledChalkFilter}>
-
-            
-            <!--<${StyledListAlt}>W<//>
-            <i class="bi bi-textarea-t"></i>
-            <${StyledIcon} className="bi bi-disc" />
-            <${StyledIcon} className="bi bi-house-door-fill" />-->
-
           </${StyledToolBarContainer}>
         </${StyledNoiseBackGround}>
       </${ControlBox}>
