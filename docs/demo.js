@@ -1,16 +1,16 @@
-import React, { createElement, useEffect, useMemo, useRef, useState } from "https://esm.sh/react";
-import { render } from "https://esm.sh/react-dom";
-import htm from "https://esm.sh/htm";
-import styled, { createGlobalStyle, css } from "https://esm.sh/styled-components";
+import React, { createElement, useEffect, useMemo, useRef, useState } from "react";
+import { render } from "react-dom";
+import htm from "htm";
+import styled, { createGlobalStyle, css } from "styled-components";
 
-import { ShareApple } from "https://esm.sh/@styled-icons/evil";
-import { ArrowDropRight } from "https://esm.sh/@styled-icons/remix-fill/ArrowDropRight";
-import hotkeys from 'https://esm.sh/hotkeys-js';
-import useOnclickOutside from 'https://esm.sh/react-cool-onclickoutside';
+import { ShareApple } from "@styled-icons/evil";
+import { ArrowDropRight } from "@styled-icons/remix-fill/ArrowDropRight";
+import hotkeys from 'hotkeys-js';
+import useOnclickOutside from 'react-cool-onclickoutside';
 
-import { ChevronUpDown } from "https://esm.sh/@styled-icons/fluentui-system-filled/ChevronUpDown";
-import { SaveAs } from "https://esm.sh/@styled-icons/heroicons-solid/SaveAs";
-import * as FSF from "https://esm.sh/@styled-icons/fluentui-system-filled"
+import { ChevronUpDown } from "@styled-icons/fluentui-system-filled/ChevronUpDown";
+import { SaveAs } from "@styled-icons/heroicons-solid/SaveAs";
+import * as FSF from "@styled-icons/fluentui-system-filled";
 // mobileConsole.show()
 
 // const html = htm.bind((type,props,...children)=>{/*console.log(type);*/return createElement(type,props,...children)});

@@ -1,8 +1,10 @@
 {
   "name": "leptomorpho",
-  "version": "0.0.10",
+  "version": "0.0.12",
   "description": "UI components aimed to remain small in size and layout.",
-  "main": "index.js",
+  "main": "dist/demo.js",
+  "source":"docs/demo.js",
+  "module": "dist/demo.esm.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -17,5 +19,23 @@
   ],
   "author": "Antoine Gjeloshaj",
   "license": "MIT",
-  "homepage": "https://github.com/GjeloshajAntoine/Leptomorpho"
+  "homepage": "https://github.com/GjeloshajAntoine/Leptomorpho",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "@styled-icons/evil": "^10.46.0",
+    "@styled-icons/fluentui-system-filled": "^10.46.0",
+    "@styled-icons/heroicons-solid": "^10.46.0",
+    "@styled-icons/remix-fill": "^10.46.0",
+    "hotkeys-js": "^3.10.0",
+    "htm": "^3.1.1",
+    "react-cool-onclickoutside": "^1.7.0",
+    "styled-components": "^5.3.6"
+  },
+  "devDependencies": {
+    "parcel": "^2.7.0",
+    "process": "^0.11.10"
+  },
+  "peerDependencies": {
+  }
 }

@@ -17,7 +17,14 @@
       // console.log(Demo);
 
       // render(createElement(Demo.Demo), document.getElementById('app'));
-      import './demo.esbuildeno.js';
+      import  { createElement } from "react";
+      import { render } from "react-dom";
+      import * as mod from './demo.esm.js';
+
+      console.log('demo',mod);
+
+      render(createElement(mod.Demo), document.getElementById('app'));
+
     </script>
 </body>
 </html>
