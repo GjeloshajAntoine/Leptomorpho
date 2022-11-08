@@ -1,6 +1,6 @@
 {
   "name": "leptomorpho",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "UI components aimed to remain small in size and layout.",
   "main": "dist/demo.js",
   "source":"docs/demo.js",

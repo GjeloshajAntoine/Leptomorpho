@@ -11,19 +11,19 @@
     auto demo
     <div id="demo"></div>
     <script type="module">
-      // import  { createElement } from "https://esm.sh/react";
-      // import { render } from "https://esm.sh/react-dom";
-      // import Demo from 'https://esm.sh/v96/leptomorpho@0.0.10/es2022/docs/demo.esbuildeno.js';
-      // console.log(Demo);
+      import  { createElement } from "https://esm.sh/react";
+      import { render } from "https://esm.sh/react-dom";
+      import {Demo} from 'https://esm.sh/leptomorpho';
+      console.log(Demo);
 
-      // render(createElement(Demo.Demo), document.getElementById('app'));
-      import  { createElement } from "react";
-      import { render } from "react-dom";
-      import * as mod from './demo.esm.js';
+      render(createElement(Demo), document.getElementById('app'));
+      // import  { createElement } from "react";
+      // import { render } from "react-dom";
+      // import * as mod from './demo.esm.js';
 
-      console.log('demo',mod);
+      // console.log('demo',mod);
 
-      render(createElement(mod.Demo), document.getElementById('app'));
+      // render(createElement(mod.Demo), document.getElementById('app'));
 
     </script>
 </body>

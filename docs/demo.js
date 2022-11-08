@@ -780,4 +780,4 @@ export const Demo = () => html`
       <//>
       `;
 
-render(createElement(Demo), document.getElementById('demo'));
+// render(createElement(Demo), document.getElementById('demo'));
