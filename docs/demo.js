@@ -1,23 +1,53 @@
-import React, { createElement, useEffect, useMemo, useRef, useState } from "react";
-import { render } from "react-dom";
+// import React, { createElement, useEffect, useMemo, useRef, useState } from "react";
+// import { render } from "react-dom";
+
+import { render } from 'preact';
+import React, { createElement, useEffect, useMemo, useRef, useState } from 'preact/compat'
+// import 'preact/debug'
+
 import htm from "htm";
-import styled, { createGlobalStyle, css } from "styled-components";
+import styled, { createGlobalStyle, css, ThemeProvider } from "styled-components";
+import register from 'preact-custom-element';
 
 import { ShareApple } from "@styled-icons/evil";
 import { ArrowDropRight } from "@styled-icons/remix-fill/ArrowDropRight";
-import hotkeys from 'hotkeys-js';
+// import hotkeys from 'hotkeys-js';
 import useOnclickOutside from 'react-cool-onclickoutside';
+// import CSSTransitionGroup from 'react-transition-group';
+// import { motion, AnimatePresence } from "framer-motion"
+
 
 import { ChevronUpDown } from "@styled-icons/fluentui-system-filled/ChevronUpDown";
 import { SaveAs } from "@styled-icons/heroicons-solid/SaveAs";
 import * as FSF from "@styled-icons/fluentui-system-filled";
-// mobileConsole.show()
+
+import { CSS as dndCSS } from '@dnd-kit/utilities';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  useDraggable,
+  useDndMonitor,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  useSortable,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  horizontalListSortingStrategy,
+} from '@dnd-kit/sortable';
+
+import { restrictToHorizontalAxis } from '@dnd-kit/modifiers';
+
 
 // const html = htm.bind((type,props,...children)=>{/*console.log(type);*/return createElement(type,props,...children)});
 const html = htm.bind(createElement);
 
 const clearWarmBeige = css`background: linear-gradient(44.8deg, hsl(13deg 100% 97%) -53.1%, hsl(43deg 100% 95%) 49%);`
-const NeonPinkGradient = css` background-image: linear-gradient(43deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%);` 
+const NeonPinkGradient = css` background-image: linear-gradient(43deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%);`
 const HighlightNeonPinkGradient = css`filter: hue-rotate(144deg)`;
 
 const TheHTML = createGlobalStyle`
@@ -36,7 +66,6 @@ const ControlBox = styled.div`
   width: 65vw;
   height: 55vh;
   margin: 0 auto;
-  /* margin-top: 15vh; */
   padding: 5px;
 `;
 
@@ -71,14 +100,14 @@ export const StyledButton = styled.button`
     padding: 1px 13px;
     font-size: 11px;
 
-  /* background: linear-gradient(0deg, rgba(243,223,207,1) 0%, rgba(238,227,218,1) 12%, rgba(255,255,255,1) 100%); */
-  /* filter: brightness(1.09) saturate(2); */
+  /* background: linear-gradient(0deg, rgba(243,223,207,1) 0%, rgba(238,227,218,1) 12%, rgba(255,255,255,1) 100%); 
+  filter: brightness(1.09) saturate(2); */
   &:active {
     /* filter: sepia(0.2); */
     /* filter: none; */
     /* background: linear-gradient(180deg, rgba(243,223,207,1) 0%, rgba(238,227,218,1) 12%, rgba(255,255,255,1) 100%); */
-    background: linear-gradient(to bottom, rgb(255 246 219) 0%,rgba(255,255,255,1) 28%);
-    background: linear-gradient(to bottom, ${buttonColor} 95%, rgba(255,255,255,1) 0%);
+    /* background: linear-gradient(to bottom, rgb(255 246 219) 0%,rgba(255,255,255,1) 28%); */
+    /* background: linear-gradient(to bottom, ${buttonColor} 95%, rgba(255,255,255,1) 0%); */
     background: linear-gradient(to bottom, rgb(34 34 34) 83%, rgb(255, 255, 255) 14%);
     outline: rgb(0, 0, 0) solid 1px;
     border: rgb(104 104 104) solid 1px;
@@ -95,25 +124,25 @@ export const StyledDopDownMenu = styled.div`
 
 `
 
-export const FloatTo = ({children, direction}) => {
+export const FloatTo = ({ children, direction }) => {
   const [props, setProps] = useState({ visibility: 'hidden' })
   const [ref, setRef] = useState(null)
-  const ClonedTo = React.cloneElement(children[0],{ref: (node => {children[0].props.ref?.(node);setRef(node)})},children[0].props.children)
-  const CloneFloating = children[1]? React.cloneElement(children[1],{...props,...children[1].props}, children[1].props.children) : null
+  const ClonedTo = React.cloneElement(children[0], { ref: (node => { children[0].props.ref?.(node); setRef(node) }) }, children[0].props.children)
+  const CloneFloating = children[1] ? React.cloneElement(children[1], { ...props, ...children[1].props }, children[1].props.children) : null
 
 
-  useEffect(()=> {
+  useEffect(() => {
     if (!ref) return
-    const { top, bottom, height, left, right, width} = ref.getBoundingClientRect()
+    const { top, bottom, height, left, right, width } = ref.getBoundingClientRect()
 
-    if (direction==="horizontal") {
-      setProps({visibility: 'visible',top:bottom, left,})
+    if (direction === "horizontal") {
+      setProps({ visibility: 'visible', top: bottom, left, })
     } else if (direction === "vertical") {
-      setProps({visibility: 'visible', top, left: right, bottom: null })
+      setProps({ visibility: 'visible', top, left: right, bottom: null })
 
     }
-    
-  },[ref,children])
+
+  }, [ref, children])
 
   return html`
     ${ClonedTo}
@@ -128,48 +157,45 @@ export const StyledDopDownMenuPanel = styled.div`
   gap : 3px;
   background-color: white;
   z-index: 1;
-  ${({top,left}) => left === null ? '' :'position:fixed' };
+  ${({ top, left }) => left === null ? '' : 'position:fixed'};
   top:${({ top }) => top}px;
   left:${({ left }) => left}px;
-  bottom:${({bottom})=>bottom}px;
-  visibility: ${({ visibility }) => visibility };
-  width: auto;
-  ${({isTopLevel})=>isTopLevel? `
+  bottom:${({ bottom }) => bottom}px;
+  visibility: ${({ visibility }) => visibility};
+  ${({ isTopLevel }) => isTopLevel ? `
     background-color: #eae7e3;
-    width: fit-content; 
-  `:`
-    width: auto;
+  `: `
     background-color: white;
     font-weight:bold;
     justify-content: space-between;
   `};
 `
 
-export const DropDownMenu = React.forwardRef(({children, direction = 'vertical', isTopLevel=true,multiOpen = false, focusFromUpper= false,allTopChildren=[],subSetmouseIsOn= false, top= null,left=null,bottom=null,UppercloseAll=null,UpperRef=null },forRef) => { //Menu And Panel combined, nestable
-  const [ mouseIsOn, setmouseIsOn] = useState(subSetmouseIsOn);
+export const DropDownMenu = React.forwardRef(({ children, direction = 'vertical', isTopLevel = true, multiOpen = false, focusFromUpper = false, allTopChildren = [], subSetmouseIsOn = false, top = null, left = null, bottom = null, UppercloseAll = null, UpperRef = null }, forRef) => { //Menu And Panel combined, nestable
+  const [mouseIsOn, setmouseIsOn] = useState(subSetmouseIsOn);
   const [openItem, setOpenItem] = useState([]); // Array because you can optionaly open many menu item of the same level : props.multiOpen
   const [flashPath, setFlashPath] = useState([])
   const dropDownRef = useRef(null)
   const deepRef = useRef(null)
   const [hasFocus, setHasFocus] = useState(isTopLevel || focusFromUpper)
 
-  const closeAll = ()=> {
+  const closeAll = () => {
     setOpenItem([])
     UppercloseAll?.()
   }
 
-    useEffect(function InitFocusTopLevel(){
-    isTopLevel && !!openItem.length? dropDownRef.current.focus():null
-  },[isTopLevel,!!openItem.length])
+  useEffect(function InitFocusTopLevel() {
+    isTopLevel && !!openItem.length ? dropDownRef.current.focus() : null
+  }, [isTopLevel, !!openItem.length])
 
   if (isTopLevel) {
     useOnclickOutside(() => {
-      setOpenItem([]) 
-    },{disabled: !openItem.length ,refs:[dropDownRef]});
+      setOpenItem([])
+    }, { disabled: !openItem.length, refs: [dropDownRef] });
   }
 
 
-  const onHeaderItemClick = (e, Item,idx) => {
+  const onHeaderItemClick = (e, Item, idx) => {
     e.preventDefault()
     e.stopPropagation()
 
@@ -187,7 +213,7 @@ export const DropDownMenu = React.forwardRef(({children, direction = 'vertical',
     Item.props.onAction?.();
   }
 
-  function onMouseOver(e,c,idx) {
+  function onMouseOver(e, c, idx) {
     e.stopPropagation()
     e.preventDefault()
 
@@ -197,87 +223,87 @@ export const DropDownMenu = React.forwardRef(({children, direction = 'vertical',
   const onTouchMoveItem = (e) => {
     e.stopPropagation()
     e.preventDefault()
-    const { touches,touches:[{clientX,clientY}={}]=[] } = e;
+    const { touches, touches: [{ clientX, clientY } = {}] = [] } = e;
 
-    if (!openItem .length && !mouseIsOn) return;
+    if (!openItem.length && !mouseIsOn) return;
     if (touches) {
-      const newTarget = document.elementFromPoint(clientX,clientY);
-      newTarget.dispatchEvent(new Event('mouseover',{bubbles: true,}))
+      const newTarget = document.elementFromPoint(clientX, clientY);
+      newTarget.dispatchEvent(new Event('mouseover', { bubbles: true, }))
     }
   }
-  
+
   const onTouchEndItem = (e) => {
-    const { target, touches,changedTouches:[{clientX,clientY}={}]=[] } = e;
+    const { target, touches, changedTouches: [{ clientX, clientY } = {}] = [] } = e;
     e.preventDefault();
 
-    const newTarget = document.elementFromPoint(clientX,clientY);
+    const newTarget = document.elementFromPoint(clientX, clientY);
     if (touches && newTarget !== target) {
-      newTarget.dispatchEvent(new Event('mouseup',{bubbles: true,}))
+      newTarget.dispatchEvent(new Event('mouseup', { bubbles: true, }))
     }
   }
 
 
 
-  const nextIdx = (arr,idx) => arr.length -1 === idx ? 0 : idx +1
-  const prevIdx = (arr,idx) => idx === 0 ? arr.length -1 : idx - 1;
+  const nextIdx = (arr, idx) => arr.length - 1 === idx ? 0 : idx + 1
+  const prevIdx = (arr, idx) => idx === 0 ? arr.length - 1 : idx - 1;
 
   const onKeyDown = (e) => {
-    console.log('childrenchildren',children.length);
+    console.log('childrenchildren', children.length);
     e.stopPropagation()
-      if (direction === "horizontal") {
-        if (e.key === "ArrowLeft" ) {
-          setOpenItem([prevIdx(children,openItem[0])])
-        }
-        if (e.key === "ArrowRight") {
-          setOpenItem([nextIdx(children,openItem[0])])
-        }
-        if (e.key === "ArrowDown") {
-          deepRef.current.focus()
+    if (direction === "horizontal") {
+      if (e.key === "ArrowLeft") {
+        setOpenItem([prevIdx(children, openItem[0])])
+      }
+      if (e.key === "ArrowRight") {
+        setOpenItem([nextIdx(children, openItem[0])])
+      }
+      if (e.key === "ArrowDown") {
+        deepRef.current.focus()
+        dropDownRef.current.blur()
+      }
+    }
+    if (direction === "vertical") {
+      if (e.key === "ArrowUp") {
+        setOpenItem([prevIdx(children, openItem[0])])
+      }
+      if (e.key === "ArrowDown") {
+        setOpenItem([nextIdx(children, openItem[0])])
+      }
+      if (e.key === "ArrowRight") {
+        const itemHasChildren = !!children[openItem[0]].props.children
+        if (itemHasChildren) {
           dropDownRef.current.blur()
+          deepRef.current.focus()
+        } else {
+          !isTopLevel ? UpperRef.current.focus() : null
         }
       }
-      if (direction === "vertical") {
-        if (e.key === "ArrowUp" ) {
-          setOpenItem([prevIdx(children,openItem[0])])
-        }
-        if (e.key === "ArrowDown") {
-          setOpenItem([nextIdx(children,openItem[0])])
-        }
-        if (e.key === "ArrowRight") {
-          const itemHasChildren = !!children[openItem[0]].props.children
-          if (itemHasChildren) {
-            dropDownRef.current.blur()
-            deepRef.current.focus()
-          } else {
-            !isTopLevel? UpperRef.current.focus() : null
-          }
-        }
-        if (e.key  === "ArrowLeft") {
-          !isTopLevel? UpperRef.current.focus(): null;
-        }
+      if (e.key === "ArrowLeft") {
+        !isTopLevel ? UpperRef.current.focus() : null;
       }
-      if (e.key === "Enter") {
-        onMouseUpItem(e,children[openItem[0]],openItem[0])
-      }
+    }
+    if (e.key === "Enter") {
+      onMouseUpItem(e, children[openItem[0]], openItem[0])
+    }
   }
 
   const addCallbacktoChildren = (childs) => {
-    return React.Children.toArray(childs).map((c,idx)=> {
-      const ClonedItem =  React.cloneElement(c,{
-        onMouseDown :isTopLevel && !('ontouchstart' in window ) ? e => onHeaderItemClick(e,c,idx) : e=> e.stopPropagation(),
-        onTouchStart: isTopLevel ? e => onHeaderItemClick(e,c,idx) : null,
-        onMouseUp: !isTopLevel ? e=> onMouseUpItem(e,c,idx) : ()=> setmouseIsOn(false),
-        onMouseOver: isTopLevel && !openItem.length?  null : e=> onMouseOver(e,c,idx),
-        onTouchMove: e => onTouchMoveItem(e,c,idx),
-        onTouchEnd: e => onTouchEndItem(e,c),
+    return React.Children.toArray(childs).map((c, idx) => {
+      const ClonedItem = React.cloneElement(c, {
+        onMouseDown: isTopLevel ? e => onHeaderItemClick(e, c, idx) : null,
+        onTouchStart: isTopLevel && !('ontouchstart' in window) ? e => onHeaderItemClick(e, c, idx) : null,
+        onMouseUp: !isTopLevel ? e => onMouseUpItem(e, c, idx) : () => setmouseIsOn(false),
+        onMouseOver: isTopLevel && !openItem.length ? null : e => onMouseOver(e, c, idx),
+        onTouchMove: e => onTouchMoveItem(e, c, idx),
+        onTouchEnd: e => onTouchEndItem(e, c),
         isTopLevel,
         isOpen: openItem.includes(idx),
-        hasSubMenu : !!c.props?.children?.length, 
-        ...c.props, 
-      },c.props.children);
+        hasSubMenu: !!c.props?.children?.length,
+        ...c.props,
+      }, c.props.children);
 
       const DropDownMenuHtml = !!c.props.children && openItem.includes(idx) ?
-      html`<${DropDownMenu} 
+        html`<${DropDownMenu} 
                  direction="vertical" 
                  isTopLevel=${false} 
                  focusFromUpper=${openItem.length === 1 && !hasFocus} 
@@ -288,21 +314,21 @@ export const DropDownMenu = React.forwardRef(({children, direction = 'vertical',
                  UpperSetHasFocus=${setHasFocus}>
              ${c.props.children} 
            </${DropDownMenu}>`
-      : null;
+        : null;
       //  <!--x,y position <will be filled by floatTo component upon cloning -->
       const customDropDownMenu = c.props.children?.props?.isExtension
-      const ExtendDropDown = !!customDropDownMenu && !!c.props.children && openItem.includes(idx) ? React.cloneElement(c.props.children,{
-        direction:"vertical", 
-        isTopLevel:false ,
-        focusFromUpper:openItem.length === 1 && !hasFocus,
-        subSetmouseIsOn:setmouseIsOn, 
-        ref:deepRef,
-        allTopChildren:isTopLevel ? children : allTopChildren,
-        UpperRef:dropDownRef,
-        UppercloseAll:closeAll, 
-        UpperSetHasFocus:setHasFocus,
+      const ExtendDropDown = !!customDropDownMenu && !!c.props.children && openItem.includes(idx) ? React.cloneElement(c.props.children, {
+        direction: "vertical",
+        isTopLevel: false,
+        focusFromUpper: openItem.length === 1 && !hasFocus,
+        subSetmouseIsOn: setmouseIsOn,
+        ref: deepRef,
+        allTopChildren: isTopLevel ? children : allTopChildren,
+        UpperRef: dropDownRef,
+        UppercloseAll: closeAll,
+        UpperSetHasFocus: setHasFocus,
 
-      },c.props.children.props.children) : null
+      }, c.props.children.props.children) : null
 
       return html`
         <${FloatTo} direction=${direction}>
@@ -320,20 +346,20 @@ export const DropDownMenu = React.forwardRef(({children, direction = 'vertical',
     <${StyledDopDownMenuPanel} 
           direction=${direction} 
           ref=${(node) => {
-          dropDownRef.current = node;
-            if (typeof forRef === 'function') {
-              forRef(node);
-            } else if (forRef) {
-              forRef.current = node;
-            }
-          }}
+      dropDownRef.current = node;
+      if (typeof forRef === 'function') {
+        forRef(node);
+      } else if (forRef) {
+        forRef.current = node;
+      }
+    }}
           isTopLevel=${isTopLevel} 
           visibility=${isTopLevel} 
           top=${top} 
           left=${left} 
           bottom=${bottom}
           onKeyDown=${onKeyDown}
-          onFocus=${e=>{e.stopPropagation();!openItem.length? setOpenItem([0]):null}}
+          onFocus=${e => { e.stopPropagation(); !openItem.length ? setOpenItem([0]) : null }}
           tabIndex="0"
           >
       ${ChildWithCallback}
@@ -348,21 +374,22 @@ export const StyledMenuItem = styled.div`
   font-size: 13px;
   font-family:'-apple-system';
   display: flex;
-  width: 100;
   user-select: none;
+  -webkit-user-select: none;
+  max-height:20px;
   position: relative;
   white-space: nowrap;
   background-color: inherit;
-  filter: ${({isOpen})=> isOpen ? 'invert(1)': null};
+  filter: ${({ isOpen }) => isOpen ? 'invert(1)' : null};
 `
 
-export const MenuItem = React.forwardRef(({name,hasSubMenu,isTopLevel,shortCut, ...props},reref)=>{
+export const MenuItem = React.forwardRef(({ name, hasSubMenu, isTopLevel, shortCut, ...props }, reref) => {
 
   return html`
     <${StyledMenuItem} ref=${reref} ...${props}>
       ${name}
-      ${shortCut ? html`<span>${shortCut.replaceAll('+',' ')}</span>` :null}
-      ${!isTopLevel && hasSubMenu ? html`<${ArrowDropRight} size='12' />`:null}
+      ${shortCut ? html`<span>${shortCut.replaceAll('+', ' ')}</span>` : null}
+      ${!isTopLevel && hasSubMenu ? html`<${ArrowDropRight} size='12' />` : null}
 
     </${StyledMenuItem}>
   `
@@ -370,20 +397,21 @@ export const MenuItem = React.forwardRef(({name,hasSubMenu,isTopLevel,shortCut, 
 })
 
 
-export const SearchMenu = React.forwardRef(({allTopChildren = [], ...props},forwardedRef)=> {
+export const SearchMenu = React.forwardRef(({ allTopChildren = [], ...props }, forwardedRef) => {
   const [searchTerm, setSearchTerm] = useState('')
 
   const extractPropsChildrenAllLevel = Array.from(allTopChildren)
-  .map(function Fla(Item,idx,array,path=[]){
-    const {props:{children}} = Item
-    return [children ? Array.from(children).map((child,idx_)=>Fla(child,idx_,array,[...path,idx])): [{Item,path:[...path,idx]}]]}
+    .map(function Fla(Item, idx, array, path = []) {
+      const { props: { children } } = Item
+      return [children ? Array.from(children).map((child, idx_) => Fla(child, idx_, array, [...path, idx])) : [{ Item, path: [...path, idx] }]]
+    }
     )
     .flat(Infinity)
-    .filter(({Item:{props:{name}}})=>name.toUpperCase().includes(searchTerm.toUpperCase()))
-    .map(({Item})=>Item)
+    .filter(({ Item: { props: { name } } }) => name.toUpperCase().includes(searchTerm.toUpperCase()))
+    .map(({ Item }) => Item)
 
   extractPropsChildrenAllLevel.unshift(html`
-      <input style=${{width:'96%',minWidth:'100px',margin:'0 auto',borderRadius:'5px'}} onmousedown=${e=>e} onMouseUp=${e=>e} onTouchEnd=${e=>e} NoOnKeyDown=${e=>e.stopPropagation()} onChange=${({target})=>setSearchTerm(target.value)} value=${searchTerm} type="text" autofocus/>
+      <input style=${{ width: '96%', minWidth: '100px', margin: '0 auto', borderRadius: '5px' }} onmousedown=${e => e} onMouseUp=${e => e} onTouchEnd=${e => e} NoOnKeyDown=${e => e.stopPropagation()} onChange=${({ target }) => setSearchTerm(target.value)} value=${searchTerm} type="text" autofocus/>
     `)
 
 
@@ -411,11 +439,11 @@ export const StyledListSelect = styled.div`
   margin-left: auto; 
   margin-right: auto; 
   background-color: white;
-  visibility:${({visibility})=>visibility ? 'visible': 'hidden'};
-  top: ${({top=0})=> top}px;
+  visibility:${({ visibility }) => visibility ? 'visible' : 'hidden'};
+  top: ${({ top = 0 }) => top}px;
   text-align:center;
   /* outline: 1px solid white; */
-  min-width: ${({minWidth})=>minWidth}px;
+  min-width: ${({ minWidth }) => minWidth}px;
   width: calc(100% + 1px);
   * {
     padding: 0;
@@ -440,18 +468,18 @@ export const StyledChevronUpDown = styled(ChevronUpDown)`
 
  `
 
-export function CenteredSelect({children, className}) {
+export function CenteredSelect({ children, className }) {
   const centeredSelectRef = useRef(null)
   const [ref, setRef] = useState(null);
   const [refList, setRefList] = useState(null);
   const [isOpen, toggleIsOpen] = useState(false)
-  const selectedFromProps  = children?.filter(c=>!!c.props.selected)[0] ?? children[0]
+  const selectedFromProps = children?.filter(c => !!c.props.selected)[0] ?? children[0]
   const [selected, setSelected] = useState(selectedFromProps)
 
 
   useOnclickOutside(() => {
-      toggleIsOpen(false)
-    },{disabled: !isOpen ,refs:[centeredSelectRef]});
+    toggleIsOpen(false)
+  }, { disabled: !isOpen, refs: [centeredSelectRef] });
 
   const onSelect = (e, OptionComp) => {
     e.stopPropagation()
@@ -460,7 +488,7 @@ export function CenteredSelect({children, className}) {
   }
 
   const onKeyDown = (e) => {
-    console.log('select key',e.code)
+    console.log('select key', e.code)
     if (e.code === 'Escape') {
       return toggleIsOpen(false);
     }
@@ -483,31 +511,29 @@ export function CenteredSelect({children, className}) {
     <${StyledCenteredSelect} 
         tabIndex='0' 
         onKeyDown=${onKeyDown} 
-        onMouseUp=${e=>{e.stopPropagation();return false}} 
-        onTouchStart=${()=>toggleIsOpen(!isOpen)} 
-        onMouseDown=${(e)=>{e.target.focus();toggleIsOpen(!isOpen)}}
+        onMouseUp=${e => { e.stopPropagation(); return false }} 
+        onTouchStart=${() => toggleIsOpen(!isOpen)} 
+        onMouseDown=${(e) => { e.target.focus(); toggleIsOpen(!isOpen) }}
         ref=${centeredSelectRef}
         className=${className}
         >
       ${selected.props.children}
       <${StyledChevronUpDown} />
-      ${
-        isOpen ? html`
-          <${StyledListSelect} ref=${node=>{setRefList(node);return node;}} minWidth=${centeredSelectRef.current?.getBoundingClientRect().width} visibility=${listVisibility} top=${-Δy}>
-            ${
-              children.map(c => React.cloneElement(c,{
-                 ref: c === selected ? node => {children[0].props.ref?.(node);setRef(node)} : null,
-                 onClick: e => onSelect(e,c),
-                 onMouseDown: e=> onSelect(e,c),
-                 onTouchStart:  e=> onSelect(e,c),
-                 onMouseUp : c !== selected ?  e=> onSelect(e,c) :null,
-                 selected : c === selected,
-                ...c.props
-              },c.props.children))
-            }
+      ${isOpen ? html`
+          <${StyledListSelect} ref=${node => { setRefList(node); return node; }} minWidth=${centeredSelectRef.current?.getBoundingClientRect().width} visibility=${listVisibility} top=${-Δy}>
+            ${children.map(c => React.cloneElement(c, {
+    ref: c === selected ? node => { children[0].props.ref?.(node); setRef(node) } : null,
+    onClick: e => onSelect(e, c),
+    onMouseDown: e => onSelect(e, c),
+    onTouchStart: e => onSelect(e, c),
+    onMouseUp: c !== selected ? e => onSelect(e, c) : null,
+    selected: c === selected,
+    ...c.props
+  }, c.props.children))
+      }
           </${StyledListSelect}> 
         `: null
-      }
+    }
     </${StyledCenteredSelect}>
   `
 }
@@ -569,8 +595,8 @@ export const StyledRedClose = styled(FSF.Dismiss)`
   }
 `
 
-export const WindowDecoration = ({title, onClose, onMinimize, onMaximize, onExpand, representedFilename,documentEdited}) => {
-    return html`
+export const WindowDecoration = ({ title, onClose, onMinimize, onMaximize, onExpand, representedFilename, documentEdited }) => {
+  return html`
       <${StyledWindowDecoration}>
         <${StyledWindowDecorationLeft}>
         </${StyledWindowDecorationLeft}>
@@ -578,7 +604,7 @@ export const WindowDecoration = ({title, onClose, onMinimize, onMaximize, onExpa
           ${!representedFilename?.length ? title : null}
           ${!!representedFilename?.length ? html`
             <${CenteredSelect}>
-              ${representedFilename.map((path,idx)=> html`<div  value=${path} selected=${!!idx}>${path}</div>`)}
+              ${representedFilename.map((path, idx) => html`<div  value=${path} selected=${!!idx}>${path}</div>`)}
             </${CenteredSelect}>
           ` : null}
         </${StyledWindowDecorationCenter}>
@@ -595,6 +621,30 @@ export const StyledNoiseBackGround = styled.div`
   background: black;
 `
 
+
+function SortableItem(props) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: props.id });
+
+  const style = {
+    transform: dndCSS.Transform.toString(transform),
+    transition,
+  };
+
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      {props.children}
+    </div>)
+
+}
+
+
 export const StyledToolBarContainer = styled.div`
   display: flex;
   justify-content: center;
@@ -602,6 +652,8 @@ export const StyledToolBarContainer = styled.div`
   padding: 1px 0;
   border-radius: 5px;
   border-top: none;
+
+  position: relative;
   `
 
 const ChalkEffectSVGString = `
@@ -645,7 +697,7 @@ const ChalkEffectSVGString = `
 </svg>
 `
 const ChalkEffectSVG = () => html`
-  <div dangerouslySetInnerHTML=${{__html: ChalkEffectSVGString}} ></div>
+  <div dangerouslySetInnerHTML=${{ __html: ChalkEffectSVGString }} ></div>
 `
 
 const StyledChalkFilter = styled.div`
@@ -653,11 +705,11 @@ const StyledChalkFilter = styled.div`
   justify-content: center;
   width: 100%;
 
-  > svg {
+  * > svg {
     width: 19px;
   }
 
-  svg > path {
+ * > svg > path {
     filter: url(#inset-shadow);
     fill: #eae7e3;
     fill: url(#rgrad);
@@ -673,12 +725,207 @@ const StyledChalkFilter = styled.div`
   
 `
 
+const transitionName = `example`;
+
+export const StyledSlideOutPanel = styled.div`
+    position: absolute;
+    min-height: 250px;
+    width: 250px;
+    background-color: red;
+    opacity: 0.5;
+    bottom: 1%;
+    top: 0;
+
+    @keyframes inAnimation {
+      0% {
+        transform: rotateX(88deg);  translateY(-30px);
+        top: -119px;
+      }
+      1% {
+        transform: rotateX(85deg); translateY(0px);
+        top: -100px;
+      }
+      10% {
+        transform: rotateX(82deg) translateY(0px);
+      }
+      100% {
+        transform: rotateX(0deg) translateY(0px);
+        top: 0%;
+      }
+    }
+
+    @keyframes outAnimation {
+      from {background-color: red;}
+      to {background-color: yellow;}
+    }
+    
+    // animation: ${({isOpen})=>'inAnimation 1s'};
+    ${({isOpen})=> !isOpen ? 'animation: inAnimation 1s reverse' : 'animation: inAnimation 1s '};
+
+    
+`;
+
+const AllProp = (props) => {
+  console.log("props",props);
+  return <div></div>
+}
+
+export const SlideOutPanel = ({ isOpen }) => {
+
+  const [appear, setAppear] = useState(isOpen)
+
+  useEffect(()=> {
+    if (!isOpen) {
+      return setTimeout(() => {
+        setAppear(false)
+      }, 1000);
+    }
+    setAppear(isOpen)
+  },[isOpen]);
+
+  return (
+    appear ? (
+        <StyledSlideOutPanel isOpen={isOpen} key={`unique${!isOpen?'close':''}`}>
+          <SaveAs />
+          <FSF.PanelBottom />
+          <FSF.MultiselectLtr />
+          <FSF.CopySelect />
+          <FSF.SelectAllOn />
+          <FSF.ArrowSquareDown />
+          <FSF.AddSquare />
+        </StyledSlideOutPanel>
+    ): null
+  )
+
+  // return (
+  //   <CSSTransitionGroup
+  //     transitionName={transitionName}
+  //     transitionAppear={true}
+  //     transitionAppearTimeout={500} >
+  //       <AllProp />
+  //     {/* {isOpen ? (
+  //       <StyledSlideOutPanel key="unique">
+  //         <SaveAs />
+  //         <FSF.PanelBottom />
+  //         <FSF.MultiselectLtr />
+  //         <FSF.CopySelect />
+  //         <FSF.SelectAllOn />
+  //         <FSF.ArrowSquareDown />
+  //         <FSF.AddSquare />
+  //       </StyledSlideOutPanel>
+  //     ) : null} */}
+  //   </CSSTransitionGroup>
+  // )
+}
+
 export const StyledToolBarGroup = styled(StyledChalkFilter)`
     width: fit-content;
     border: 2px solid #858585;
     border-radius: 7px;
     margin-right: 53px;
 `
+
+
+function SortableToolBar({ children, /*isEdited*/ }) {
+
+  const [items, setItems] = useState(children.map((c, idx) => ({ ...c, id: `id_${idx}` })));
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const [isEdited, setIsEdited] = useState(false);
+
+  return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+      modifiers={[restrictToHorizontalAxis]}
+    >
+      <StyledToolBarContainer>
+        <span style={{ color: "white" }} onClick={() => setIsEdited(!isEdited)}>Edit/close</span>
+        <StyledChalkFilter>
+          <SortableContext
+            Noitems={items}
+            items={items.map(item => item.id)}
+            strategy={horizontalListSortingStrategy}
+          >
+            {items.map((elem, idx) => <SortableItem key={elem.id} id={elem.id}>{elem}</SortableItem>)}
+          </SortableContext>
+          <SlideOutPanel isOpen={isEdited} />
+        </StyledChalkFilter>
+      </StyledToolBarContainer>
+    </DndContext>
+  );
+
+  function handleDragEnd(event) {
+    const { active, over } = event;
+    console.log(event)
+    if (active.id !== over.id) {
+      console.log("if")
+      setItems((items) => {
+        const oldIndex = items.map((item) => item.id).indexOf(active.id);
+        const newIndex = items.map((item) => item.id).indexOf(over.id);
+        console.log({ oldIndex, newIndex });
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  }
+}
+
+const StyledWindow = styled.div`
+
+`
+
+function WindowComponent({ coordchange, width, height, x: xProps = 0, y : yProps = 0, children}) {
+  const { setNodeRef, listeners, transform } = useDraggable({ id: 'truc' })
+  
+  const [x,setX] = useState(parseInt(xProps))
+  const [y,setY] = useState(parseInt(yProps))
+
+  console.log('onCoordChange',coordchange);
+
+  useDndMonitor({
+    onDragEnd: e => { 
+      // console.log('drag end', e);
+      console.log('e.delta.x',e.delta.x);
+      console.log('e.delta.y',e.delta.y);
+      setX(x + e.delta.x)
+      setY(y + e.delta.y)
+      coordchange?.({x:x + e.delta.x,y:y + e.delta.y})
+    }
+  })
+
+  return (
+    <div key="uniiiique" ref={setNodeRef} style={{ width, minHeight: height, position: "absolute", left: x, top:y,transform: dndCSS.Transform.toString(transform) }} {...listeners}>
+      <WindowDecoration title="Drag around" NorepresentedFilename={['file.example', 'Folder', 'Documents']} />
+      {children}
+    </div>
+  )
+}
+
+
+
+console.log('this -----', this)
+
+const WindowComponentWithContext = (props) => {
+  console.log('onCoordChange',props.coordchange);
+  console.log('props X',props.x);
+  return  (
+  <DndContext>
+    <WindowComponent {...props}>
+      {props.children}
+    </WindowComponent>
+  </DndContext>
+)}
+
+register(WindowComponent, 'lepto-win', ["width", "height"], { shadow: false });
+register(WindowComponentWithContext, 'lepto-context-win', ["coordchange","x","y", "width", "height"], { shadow: false });
+register(DndContext, 'dn-context', ["children"], { shadow: false });
+
 
 export const Demo = () => html`
       <${React.Fragment}>
@@ -697,14 +944,14 @@ export const Demo = () => html`
           </${MenuItem}/>
 
           <${MenuItem} name='Edit'> 
-            <${MenuItem} name="Undo" onAction=${(a)=>console.log('shortcut_',a)} shortCut=${'ctrl+z'}/>
+            <${MenuItem} name="Undo" onAction=${(a) => console.log('shortcut_', a)} shortCut=${'ctrl+z'}/>
             <${MenuItem} name="Redo" />
             <${MenuItem} name="Copy" />
             <${MenuItem} name="Past" />
             <${MenuItem} name="Truc" shortCut="ctrl+truc" />
-            <${MenuItem} name="Sub menu" ref=${(node)=>console.log('1st node',node)}> 
+            <${MenuItem} name="Sub menu" ref=${(node) => console.log('1st node', node)}> 
               <${MenuItem} name="Sub item A">
-                <${MenuItem} name="Copy" onAction=${()=>console.log('sub copy')} />
+                <${MenuItem} name="Copy" onAction=${() => console.log('sub copy')} />
                 <${MenuItem} name="Past" />
                 <${MenuItem} name="mais encore">
                   <${MenuItem} name="Past" />
@@ -714,7 +961,7 @@ export const Demo = () => html`
               <${MenuItem} name="Sub item B"/>
             </${MenuItem}>
             <${MenuItem} name="Sub Next"> 
-              <${MenuItem} name="TRUC" onAction=${()=>alert('Truc')}/>
+              <${MenuItem} name="TRUC" onAction=${() => alert('Truc')}/>
               <${MenuItem} name="OPOPO"/>
             </${MenuItem}>
           </${MenuItem}>
@@ -743,13 +990,12 @@ export const Demo = () => html`
         <br/>
         <br/>
 
-        <${WindowDecoration} title="App example" representedFilename=${['file.example','Folder','Documents']}/>
+        <${WindowDecoration} title="App example" represent  edFilename=${['file.example', 'Folder', 'Documents']}/>
         <${StyledNoiseBackGround}>
-          <${StyledToolBarContainer}>
+          <${SortableToolBar}>
             <${ChalkEffectSVG}/>
-            <${StyledChalkFilter}>
-              <${StyledToolBarGroup}>
-                <${FSF.ArrowAutofitUp}/>
+            <${StyledToolBarGroup}>
+            <${FSF.ArrowAutofitUp}/>
                 <${FSF.ArrowCurveUpLeft}/>
                 <${FSF.ArrowUp}/>
                 <${FSF.ArrowDown}/>
@@ -770,14 +1016,48 @@ export const Demo = () => html`
               <${FSF.ImageAdd}/>
               <${FSF.ImageAltText}/>
               <${CenteredSelect}>
-                <div value="ex 1">font 1</div>
-                <div value="ex 4" >ex4</div>
+              <div value="ex 1">font 1</div>
+              <div value="ex 4" >ex4</div>
               </${CenteredSelect}>
-            </{StyledChalkFilter}>
-          </${StyledToolBarContainer}>
+          </${SortableToolBar}>
         </${StyledNoiseBackGround}>
+
+        <${DndContext}>
+          <${WindowComponent} height="200px" width="200px">
+            <div style=${{color:'white'}}>
+              OSUSHUHQSHUS
+              dsoidqjsidsqd
+            </div>
+          </${WindowComponent}>  
+        </${DndContext}>
       </${ControlBox}>
       <//>
       `;
+
+register(Demo, 'lepto-demo', [], { shadow: false });
+
+const StyledText = styled.div`
+  color:${props => props.theme.fg};
+`
+
+function ThemeTest({jsontheme, children}) {
+  const defaultTheme = {
+    fg: "palevioletred",
+    bg: "white"
+  };
+  console.log("jsontheme",jsontheme);
+  return (
+    <ThemeProvider theme={jsontheme ? JSON.parse(jsontheme): defaultTheme}>
+        {children}
+      <StyledText>
+        <span>TETETET</span>
+      </StyledText>
+    </ThemeProvider>
+  )
+}
+
+register(ThemeTest, 'lepto-theme', ["jsontheme","children"], { shadow: false });
+register(StyledText, 'lepto-text', [], { shadow: false });
+
 
 // render(createElement(Demo), document.getElementById('demo'));

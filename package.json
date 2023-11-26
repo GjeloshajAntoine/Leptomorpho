@@ -3,9 +3,29 @@
   "version": "0.0.14",
   "description": "UI components aimed to remain small in size and layout.",
   "main": "dist/demo.js",
-  "source":"docs/demo.js",
+  "source": "docs/demo.js",
   "module": "dist/demo.esm.js",
+  "old": "dist/demo.old.js",
+  "targets": {
+    "main": {
+      "optimize": true
+    },
+    "module": {
+      "optimize": true
+    },
+    "old": {
+      "outputFormat": "global",
+      "includeNodeModules": true
+    }
+  },
+  "alias": {
+    "react": "preact/compat",
+    "react-dom/test-utils": "preact/test-utils",
+    "react-dom": "preact/compat",
+    "react/jsx-runtime": "preact/jsx-runtime"
+  },
   "scripts": {
+    "start": "parcel docs/demo.html",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -21,21 +41,34 @@
   "license": "MIT",
   "homepage": "https://github.com/GjeloshajAntoine/Leptomorpho",
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "@babel/plugin-transform-react-jsx": "^7.20.7",
+    "@babel/preset-env": "^7.20.2",
+    "@dnd-kit/core": "^6.0.7",
+    "@dnd-kit/modifiers": "^6.0.1",
+    "@dnd-kit/sortable": "^7.0.2",
+    "@dnd-kit/utilities": "^3.2.1",
+    "@parcel/babel-preset-env": "^2.8.2",
+    "@parcel/transformer-babel": "^2.8.2",
     "@styled-icons/evil": "^10.46.0",
     "@styled-icons/fluentui-system-filled": "^10.46.0",
     "@styled-icons/heroicons-solid": "^10.46.0",
     "@styled-icons/remix-fill": "^10.46.0",
+    "babel-plugin-htm": "^3.0.0",
+    "babel-preset-env": "^1.7.0",
+    "framer-motion": "^10.6.0",
     "hotkeys-js": "^3.10.0",
     "htm": "^3.1.1",
+    "preact": "^10.13.1",
+    "preact-custom-element": "^4.2.1",
+    "react": "^18.2.0",
     "react-cool-onclickoutside": "^1.7.0",
+    "react-dom": "^18.2.0",
+    "react-transition-group": "^4.4.5",
     "styled-components": "^5.3.6"
   },
   "devDependencies": {
-    "parcel": "^2.7.0",
+    "babel-plugin-styled-components": "^2.0.7",
+    "parcel": "^2.8.2",
     "process": "^0.11.10"
-  },
-  "peerDependencies": {
   }
 }

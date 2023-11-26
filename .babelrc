@@ -1,0 +1,11 @@
+{
+  "plugins": [ 
+      [
+        "htm", 
+        {
+          "pragma": "React.createElement"
+        }
+      ],
+      "babel-plugin-styled-components"
+    ]
+}
