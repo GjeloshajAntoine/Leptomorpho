@@ -11,7 +11,8 @@
       "optimize": true
     },
     "module": {
-      "optimize": true
+      "optimize": true,
+      "includeNodeModules": true
     },
     "old": {
       "outputFormat": "global",
@@ -20,7 +21,6 @@
   },
   "alias": {
     "react": "preact/compat",
-    "react-dom/test-utils": "preact/test-utils",
     "react-dom": "preact/compat",
     "react/jsx-runtime": "preact/jsx-runtime"
   },
@@ -63,6 +63,7 @@
     "react": "^18.2.0",
     "react-cool-onclickoutside": "^1.7.0",
     "react-dom": "^18.2.0",
+    "react-resizable": "^3.0.5",
     "react-transition-group": "^4.4.5",
     "styled-components": "^5.3.6"
   },

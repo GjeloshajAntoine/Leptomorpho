@@ -1,45 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/B1naryStudio/js-mobile-console/style/mobile-console.min.css">
-    <title>Demo Leptomorpho</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Dangrek&display=swap" rel="stylesheet">
-  </head>
-  <body style="background-color: black;">
-    <lepto-theme jsontheme='{"fg": "yellow"}'>
-      <h1 >THEME TEST</h1>
-      <div>
-        <lepto-text> My themed text </lepto-text>
-      </div>
-    </lepto-theme>
-    <lepto-demo> </lepto-demo>
 
-    <div id="demo"></div>
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/B1naryStudio/js-mobile-console/style/mobile-console.min.css">
+  <title>Demo Leptomorpho</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Dangrek&display=swap" rel="stylesheet">
+</head>
 
-      <lepto-context-win id="test-win" x="350px" y="35px"  height="200px" width="200px">
-        <div style="color:white">
-            Content
-        </div>
-        <button>Hello</button>
-      </lepto-context-win>
+<body style="background-color: black;">
+  <lepto-theme jsontheme='{"fg": "yellow"}'>
+    <h1>THEME TEST</h1>
+    <div>
+      <lepto-text> My themed text </lepto-text>
+    </div>
+  </lepto-theme>
+  <lepto-demo> </lepto-demo>
 
-      <script>
-        const testWin = document.getElementById("test-win")
-        testWin.coordchange = (coord) => console.log('changed coord',coord)
-      </script>
+  <div id="demo"></div>
 
-   <script  type="module">
-      import * as AllComp from './demo.js';
-      import { render } from "react-dom";
-      import  { createElement } from "react";
-      console.log("AllComp",AllComp);
+  <lepto-context-win id="test-win" x="650px" y="35px" height="200px" width="200px">
+    <div style="color:white">
+      Content web component
+    </div>
+    <button>Hello</button>
+  </lepto-context-win>
 
-      render(createElement(AllComp.Demo), document.getElementById('demo'));
-   </script>
-  </body>
+  <script>
+    const testWin = document.getElementById("test-win")
+    testWin.addEventListener("coord-change", (e) => console.log('changed coord', e.detail))
+  </script>
+
+  <script type="module">
+    import * as AllComp from './demo.js';
+    import { render } from "react-dom";
+    import { createElement } from "react";
+    console.log("AllComp", AllComp);
+
+    render(createElement(AllComp.Demo), document.getElementById('demo'));
+  </script>
+</body>
+
 </html>

@@ -1,6 +1,3 @@
-// import React, { createElement, useEffect, useMemo, useRef, useState } from "react";
-// import { render } from "react-dom";
-
 import { render } from 'preact';
 import React, { createElement, useEffect, useMemo, useRef, useState } from 'preact/compat'
 // import 'preact/debug'
@@ -41,7 +38,8 @@ import {
 } from '@dnd-kit/sortable';
 
 import { restrictToHorizontalAxis } from '@dnd-kit/modifiers';
-
+import { Resizable } from 'react-resizable';
+import "react-resizable/css/styles.css"
 
 // const html = htm.bind((type,props,...children)=>{/*console.log(type);*/return createElement(type,props,...children)});
 const html = htm.bind(createElement);
@@ -171,7 +169,20 @@ export const StyledDopDownMenuPanel = styled.div`
   `};
 `
 
-export const DropDownMenu = React.forwardRef(({ children, direction = 'vertical', isTopLevel = true, multiOpen = false, focusFromUpper = false, allTopChildren = [], subSetmouseIsOn = false, top = null, left = null, bottom = null, UppercloseAll = null, UpperRef = null }, forRef) => { //Menu And Panel combined, nestable
+export const DropDownMenu = React.forwardRef(({ children,
+  direction = 'vertical',
+  isTopLevel = true,
+  itemJson = {},
+  multiOpen = false,
+  focusFromUpper = false,
+  allTopChildren = [],
+  subSetmouseIsOn = false,
+  top = null,
+  left = null,
+  bottom = null,
+  UppercloseAll = null,
+  UpperRef = null
+}, forRef) => { //Menu And Panel combined, nestable
   const [mouseIsOn, setmouseIsOn] = useState(subSetmouseIsOn);
   const [openItem, setOpenItem] = useState([]); // Array because you can optionaly open many menu item of the same level : props.multiOpen
   const [flashPath, setFlashPath] = useState([])
@@ -206,11 +217,11 @@ export const DropDownMenu = React.forwardRef(({ children, direction = 'vertical'
   const onMouseUpItem = (e, Item, idx,) => {
     e.stopPropagation();
     e.preventDefault();
-    const { props: { children } } = Item
+    const { children } = Item
 
     children ? setOpenItem([idx]) : closeAll()
     setmouseIsOn(false)
-    Item.props.onAction?.();
+    Item.onAction?.();
   }
 
   function onMouseOver(e, c, idx) {
@@ -248,6 +259,7 @@ export const DropDownMenu = React.forwardRef(({ children, direction = 'vertical'
   const prevIdx = (arr, idx) => idx === 0 ? arr.length - 1 : idx - 1;
 
   const onKeyDown = (e) => {
+    const children = itemJson;
     console.log('childrenchildren', children.length);
     e.stopPropagation()
     if (direction === "horizontal") {
@@ -270,7 +282,7 @@ export const DropDownMenu = React.forwardRef(({ children, direction = 'vertical'
         setOpenItem([nextIdx(children, openItem[0])])
       }
       if (e.key === "ArrowRight") {
-        const itemHasChildren = !!children[openItem[0]].props.children
+        const itemHasChildren = !!children[openItem[0]].children
         if (itemHasChildren) {
           dropDownRef.current.blur()
           deepRef.current.focus()
@@ -340,7 +352,44 @@ export const DropDownMenu = React.forwardRef(({ children, direction = 'vertical'
     })
   }
 
-  const ChildWithCallback = addCallbacktoChildren(children)
+  // const ChildWithCallback = addCallbacktoChildren(children)
+  const jsonToItem = (items) => {
+    const itemComps = items.map((item, idx) => {
+      console.log(item, idx);
+      return (
+        <FloatTo direction={direction}>
+          <MenuItem
+            name={item.name}
+            hasSubMenu={!!item.children}
+            isTopLevel={isTopLevel}
+            onMouseDown={isTopLevel ? (e) => onHeaderItemClick(e, item, idx) : null}
+            onTouchStart={isTopLevel && !('ontouchstart' in window) ? (e) => onHeaderItemClick(e, item, idx) : null}
+            onMouseUp={!isTopLevel ? (e) => onMouseUpItem(e, item, idx) : () => setmouseIsOn(false)}
+            onMouseOver={isTopLevel && !openItem.length ? null : (e) => onMouseOver(e, item, idx)}
+            onTouchMove={(e) => onTouchMoveItem(e, item, idx)}
+            onTouchEnd={(e) => onTouchEndItem(e, item)}
+            isOpen={openItem.includes(idx)}
+            {...item}
+          />
+          {!!item.children && openItem.includes(idx) ? (
+            <DropDownMenu
+              direction="vertical"
+              isTopLevel={false}
+              itemJson={item.children}
+              focusFromUpper={openItem.length === 1 && !hasFocus}
+              subSetmouseIsOn={setmouseIsOn}
+              ref={deepRef}
+              UpperRef={dropDownRef}
+              UppercloseAll={closeAll}
+              UpperSetHasFocus={setHasFocus}
+            >
+            </DropDownMenu>
+          ) : null}
+        </FloatTo>
+      );
+    });
+    return itemComps;
+  };
 
   return html`
     <${StyledDopDownMenuPanel} 
@@ -362,7 +411,7 @@ export const DropDownMenu = React.forwardRef(({ children, direction = 'vertical'
           onFocus=${e => { e.stopPropagation(); !openItem.length ? setOpenItem([0]) : null }}
           tabIndex="0"
           >
-      ${ChildWithCallback}
+      ${jsonToItem(itemJson)}
     </${StyledDopDownMenuPanel}>
   `
 
@@ -384,18 +433,14 @@ export const StyledMenuItem = styled.div`
 `
 
 export const MenuItem = React.forwardRef(({ name, hasSubMenu, isTopLevel, shortCut, ...props }, reref) => {
-
-  return html`
-    <${StyledMenuItem} ref=${reref} ...${props}>
-      ${name}
-      ${shortCut ? html`<span>${shortCut.replaceAll('+', ' ')}</span>` : null}
-      ${!isTopLevel && hasSubMenu ? html`<${ArrowDropRight} size='12' />` : null}
-
-    </${StyledMenuItem}>
-  `
-
-})
-
+  return (
+    <StyledMenuItem ref={reref} {...props}>
+      {name}
+      {shortCut ? <span>{shortCut.replaceAll('+', ' ')}</span> : null}
+      {!isTopLevel && hasSubMenu ? <ArrowDropRight size='12' /> : null}
+    </StyledMenuItem>
+  );
+});
 
 export const SearchMenu = React.forwardRef(({ allTopChildren = [], ...props }, forwardedRef) => {
   const [searchTerm, setSearchTerm] = useState('')
@@ -423,7 +468,7 @@ export const SearchMenu = React.forwardRef(({ allTopChildren = [], ...props }, f
 })
 
 export const StyledCenteredSelect = styled.div`
-  display: inline-block;
+  display: inline-flex;
   position: relative;
   border: 1px solid gray;
   background-color:white;
@@ -469,23 +514,22 @@ export const StyledChevronUpDown = styled(ChevronUpDown)`
  `
 
 export function CenteredSelect({ children, className }) {
-  const centeredSelectRef = useRef(null)
+  const centeredSelectRef = useRef(null);
   const [ref, setRef] = useState(null);
   const [refList, setRefList] = useState(null);
-  const [isOpen, toggleIsOpen] = useState(false)
-  const selectedFromProps = children?.filter(c => !!c.props.selected)[0] ?? children[0]
-  const [selected, setSelected] = useState(selectedFromProps)
-
+  const [isOpen, toggleIsOpen] = useState(false);
+  const selectedFromProps = children?.filter(c => !!c.props.selected)[0] ?? children[0];
+  const [selected, setSelected] = useState(selectedFromProps);
 
   useOnclickOutside(() => {
     toggleIsOpen(false)
   }, { disabled: !isOpen, refs: [centeredSelectRef] });
 
   const onSelect = (e, OptionComp) => {
-    e.stopPropagation()
-    setSelected(OptionComp)
-    toggleIsOpen(false)
-  }
+    e.stopPropagation();
+    setSelected(OptionComp);
+    toggleIsOpen(false);
+  };
 
   const onKeyDown = (e) => {
     console.log('select key', e.code)
@@ -502,46 +546,49 @@ export function CenteredSelect({ children, className }) {
     if (e.code === 'ArrowDown') {
       return toggleIsOpen(false);
     }
-  }
+  };
 
   const listVisibility = isOpen && !!refList?.getBoundingClientRect().height && !!ref?.getBoundingClientRect().height;
   const Δy = ref?.getBoundingClientRect().y - refList?.getBoundingClientRect().y;
 
-  return html`  
-    <${StyledCenteredSelect} 
-        tabIndex='0' 
-        onKeyDown=${onKeyDown} 
-        onMouseUp=${e => { e.stopPropagation(); return false }} 
-        onTouchStart=${() => toggleIsOpen(!isOpen)} 
-        onMouseDown=${(e) => { e.target.focus(); toggleIsOpen(!isOpen) }}
-        ref=${centeredSelectRef}
-        className=${className}
+  return (
+    <StyledCenteredSelect
+      tabIndex='0'
+      onKeyDown={onKeyDown}
+      onMouseUp={e => { e.stopPropagation(); e.preventDefault(); return false }}
+      onTouchStart={() => toggleIsOpen(!isOpen)}
+      onMouseDown={(e) => { e.target.focus(); toggleIsOpen(!isOpen) }}
+      ref={centeredSelectRef}
+      className={className}
+    >
+      {selected.props.children}
+      <StyledChevronUpDown />
+      {isOpen ? (
+        <StyledListSelect
+          ref={node => { setRefList(node); return node; }}
+          minWidth={centeredSelectRef.current?.getBoundingClientRect().width}
+          visibility={listVisibility}
+          top={-Δy}
         >
-      ${selected.props.children}
-      <${StyledChevronUpDown} />
-      ${isOpen ? html`
-          <${StyledListSelect} ref=${node => { setRefList(node); return node; }} minWidth=${centeredSelectRef.current?.getBoundingClientRect().width} visibility=${listVisibility} top=${-Δy}>
-            ${children.map(c => React.cloneElement(c, {
-    ref: c === selected ? node => { children[0].props.ref?.(node); setRef(node) } : null,
-    onClick: e => onSelect(e, c),
-    onMouseDown: e => onSelect(e, c),
-    onTouchStart: e => onSelect(e, c),
-    onMouseUp: c !== selected ? e => onSelect(e, c) : null,
-    selected: c === selected,
-    ...c.props
-  }, c.props.children))
-      }
-          </${StyledListSelect}> 
-        `: null
-    }
-    </${StyledCenteredSelect}>
-  `
+          {children.map(c => React.cloneElement(c, {
+            ref: c === selected ? node => { children[0].props.ref?.(node); setRef(node) } : null,
+            onClick: e => onSelect(e, c),
+            onMouseDown: e => onSelect(e, c),
+            onTouchStart: e => onSelect(e, c),
+            onMouseUp: c !== selected ? e => onSelect(e, c) : null,
+            selected: c === selected,
+            ...c.props
+          }, c.props.children))}
+        </StyledListSelect>
+      ) : null}
+    </StyledCenteredSelect>
+  );
 }
 
 
 export const StyledWindowDecoration = styled.div`
   display: flex;
-  width: 100%;
+  // width: 100%;
   background: black;
   background: linear-gradient(to bottom, #595959 1%,#727272 3%,#474747 6%,#474747 12%,#111111 49%,#000000 92%,#000000 100%);
   color: white;
@@ -559,13 +606,14 @@ export const StyledWindowDecoration = styled.div`
   }
 `
 export const StyledWindowDecorationLeft = styled.div`
-
+  min-width: 50px
 `
 export const StyledWindowDecorationCenter = styled.div`
   margin-left: auto;
 `
 export const StyledWindowDecorationRight = styled.div`
   margin-left: auto;
+
   svg {
     width: 16px;
     padding: 4px;
@@ -595,27 +643,40 @@ export const StyledRedClose = styled(FSF.Dismiss)`
   }
 `
 
-export const WindowDecoration = ({ title, onClose, onMinimize, onMaximize, onExpand, representedFilename, documentEdited }) => {
-  return html`
-      <${StyledWindowDecoration}>
-        <${StyledWindowDecorationLeft}>
-        </${StyledWindowDecorationLeft}>
-        <${StyledWindowDecorationCenter}>
-          ${!representedFilename?.length ? title : null}
-          ${!!representedFilename?.length ? html`
-            <${CenteredSelect}>
-              ${representedFilename.map((path, idx) => html`<div  value=${path} selected=${!!idx}>${path}</div>`)}
-            </${CenteredSelect}>
-          ` : null}
-        </${StyledWindowDecorationCenter}>
-        <${StyledWindowDecorationRight}>
-            <${StyledBlueMinimize}/>
-            <${StyledBlueMaximize}/>
-            <${StyledRedClose}/>
-        </${StyledWindowDecorationRight}>
-      </${StyledWindowDecoration}>
-    `
-}
+export const WindowDecoration = ({
+  title,
+  onClose,
+  onMinimize,
+  onMaximize,
+  onExpand,
+  representedFilename,
+  isDocumentEdited,
+  draggableRef,
+  listeners }) => {
+  return (
+    <StyledWindowDecoration>
+      <StyledWindowDecorationLeft ref={draggableRef} {...listeners}>
+      </StyledWindowDecorationLeft>
+
+      <StyledWindowDecorationCenter>
+        {!representedFilename?.length ? title : null}
+        {representedFilename?.length ? (
+          <CenteredSelect>
+            {representedFilename.map((path, idx) => (
+              <div value={path} selected={!!idx}>{path}</div>
+            ))}
+          </CenteredSelect>
+        ) : null}
+      </StyledWindowDecorationCenter>
+
+      <StyledWindowDecorationRight ref={draggableRef} {...listeners}>
+        <StyledBlueMinimize />
+        <StyledBlueMaximize />
+        <StyledRedClose />
+      </StyledWindowDecorationRight>
+    </StyledWindowDecoration>
+  );
+};
 
 export const StyledNoiseBackGround = styled.div`
   background: black;
@@ -705,11 +766,11 @@ const StyledChalkFilter = styled.div`
   justify-content: center;
   width: 100%;
 
-  * > svg {
+  svg {
     width: 19px;
   }
 
- * > svg > path {
+  svg > path {
     filter: url(#inset-shadow);
     fill: #eae7e3;
     fill: url(#rgrad);
@@ -759,14 +820,14 @@ export const StyledSlideOutPanel = styled.div`
       to {background-color: yellow;}
     }
     
-    // animation: ${({isOpen})=>'inAnimation 1s'};
-    ${({isOpen})=> !isOpen ? 'animation: inAnimation 1s reverse' : 'animation: inAnimation 1s '};
+    // animation: ${({ isOpen }) => 'inAnimation 1s'};
+    ${({ isOpen }) => !isOpen ? 'animation: inAnimation 1s reverse' : 'animation: inAnimation 1s '};
 
     
 `;
 
 const AllProp = (props) => {
-  console.log("props",props);
+  console.log("props", props);
   return <div></div>
 }
 
@@ -774,27 +835,27 @@ export const SlideOutPanel = ({ isOpen }) => {
 
   const [appear, setAppear] = useState(isOpen)
 
-  useEffect(()=> {
+  useEffect(() => {
     if (!isOpen) {
       return setTimeout(() => {
         setAppear(false)
       }, 1000);
     }
     setAppear(isOpen)
-  },[isOpen]);
+  }, [isOpen]);
 
   return (
     appear ? (
-        <StyledSlideOutPanel isOpen={isOpen} key={`unique${!isOpen?'close':''}`}>
-          <SaveAs />
-          <FSF.PanelBottom />
-          <FSF.MultiselectLtr />
-          <FSF.CopySelect />
-          <FSF.SelectAllOn />
-          <FSF.ArrowSquareDown />
-          <FSF.AddSquare />
-        </StyledSlideOutPanel>
-    ): null
+      <StyledSlideOutPanel isOpen={isOpen} key={`unique${!isOpen ? 'close' : ''}`}>
+        <SaveAs />
+        <FSF.PanelBottom />
+        <FSF.MultiselectLtr />
+        <FSF.CopySelect />
+        <FSF.SelectAllOn />
+        <FSF.ArrowSquareDown />
+        <FSF.AddSquare />
+      </StyledSlideOutPanel>
+    ) : null
   )
 
   // return (
@@ -876,34 +937,69 @@ function SortableToolBar({ children, /*isEdited*/ }) {
   }
 }
 
+const StyledResizeHandle = styled.div`
+    width: 6px;
+    min-height: 6px;
+    border-top-right-radius: 0%;
+    border-top-left-radius: 100%;
+    background-color: #54a3cf;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+`
+
 const StyledWindow = styled.div`
 
 `
 
-function WindowComponent({ coordchange, width, height, x: xProps = 0, y : yProps = 0, children}) {
-  const { setNodeRef, listeners, transform } = useDraggable({ id: 'truc' })
-  
-  const [x,setX] = useState(parseInt(xProps))
-  const [y,setY] = useState(parseInt(yProps))
+function WindowComponent(props) {
+  const { coordchange, width: widthProps, height: heightProps, x: xProps = 0, y: yProps = 0, children } = props;
+  const { setNodeRef, listeners, transform, setActivatorNodeRef } = useDraggable({ id: 'truc' })
+  const [x, setX] = useState(parseInt(xProps))
+  const [y, setY] = useState(parseInt(yProps))
+  const [width, setWidth] = useState(widthProps);
+  const [height, setHeight] = useState(heightProps);
 
-  console.log('onCoordChange',coordchange);
+  // console.log('onCoordChange', coordchange && coordchange("yyyeyye"));
+  // console.log(this);
+
+  if (coordchange) {
+    // console.log("has function");
+    // console.log(coordchange);
+  }
+
+  const dispatchCoordChange = (coord) => {
+    const coordEvent = new CustomEvent("coord-change", {
+      detail: coord
+    });
+    this.base.dispatchEvent(coordEvent, coord);
+  }
 
   useDndMonitor({
-    onDragEnd: e => { 
+    onDragEnd: e => {
       // console.log('drag end', e);
-      console.log('e.delta.x',e.delta.x);
-      console.log('e.delta.y',e.delta.y);
+      console.log('e.delta.x', e.delta.x);
+      console.log('e.delta.y', e.delta.y);
       setX(x + e.delta.x)
       setY(y + e.delta.y)
-      coordchange?.({x:x + e.delta.x,y:y + e.delta.y})
+      // coordchange?.({x:x + e.delta.x,y:y + e.delta.y})
+      dispatchCoordChange({ x: x + e.delta.x, y: y + e.delta.y })
     }
   })
 
+  const onResize = (e, {size}) => {
+    console.log(size);
+    setWidth(size.width);
+    setHeight(size.height);
+  }
+
   return (
-    <div key="uniiiique" ref={setNodeRef} style={{ width, minHeight: height, position: "absolute", left: x, top:y,transform: dndCSS.Transform.toString(transform) }} {...listeners}>
-      <WindowDecoration title="Drag around" NorepresentedFilename={['file.example', 'Folder', 'Documents']} />
-      {children}
-    </div>
+    <Resizable handle={<StyledResizeHandle />} onResize={onResize} width={parseInt(width)} height={parseInt(height)}>
+      <div key="uniiiique" ref={setNodeRef} style={{ width, minHeight: height, position: "absolute", left: x, top: y, transform: dndCSS.Transform.toString(transform), backgroundColor: "white" }}>
+        <WindowDecoration title="Drag around" draggableRef={setActivatorNodeRef} listeners={listeners} representedFilename={['file.example', 'Folder', 'Documents']} />
+        {children}
+      </div>
+    </Resizable>
   )
 }
 
@@ -912,127 +1008,151 @@ function WindowComponent({ coordchange, width, height, x: xProps = 0, y : yProps
 console.log('this -----', this)
 
 const WindowComponentWithContext = (props) => {
-  console.log('onCoordChange',props.coordchange);
-  console.log('props X',props.x);
-  return  (
-  <DndContext>
-    <WindowComponent {...props}>
-      {props.children}
-    </WindowComponent>
-  </DndContext>
-)}
+  console.log('onCoordChange', props.coordchange);
+  console.log('props X', props.x);
+  return (
+    <DndContext>
+      <WindowComponent {...props}>
+        {props.children}
+      </WindowComponent>
+    </DndContext>
+  )
+}
 
 register(WindowComponent, 'lepto-win', ["width", "height"], { shadow: false });
-register(WindowComponentWithContext, 'lepto-context-win', ["coordchange","x","y", "width", "height"], { shadow: false });
+register(WindowComponentWithContext, 'lepto-context-win', ["coordchange", "x", "y", "width", "height"], { shadow: false });
 register(DndContext, 'dn-context', ["children"], { shadow: false });
 
+const myMenuItem = [
+  {
+    "name": "File",
+    "children": [
+      { "name": "Open" },
+      { "name": "New" }
+    ]
+  },
+  {
+    "name": "Edit",
+    "children": [
+      { "name": "Undo", "onAction": "(a) => console.log('shortcut_', a)", "shortCut": "ctrl+z" },
+      { "name": "Redo" },
+      { "name": "Copy" },
+      { "name": "Past" },
+      { "name": "Truc", "shortCut": "ctrl+truc" },
+      {
+        "name": "Sub menu",
+        "ref": "(node) => console.log('1st node', node)",
+        "children": [
+          {
+            "name": "Sub item A",
+            "children": [
+              { "name": "Copy", "onAction": () => console.log('sub copy') },
+              { "name": "Past" },
+              {
+                "name": "mais encore",
+                "children": [
+                  { "name": "Past" },
+                  { "name": "Copy" }
+                ]
+              }
+            ]
+          },
+          { "name": "Sub item B" },
+          {
+            "name": "Sub Next",
+            "children": [
+              { "name": "TRUC", "onAction": () => alert('Truc') },
+              { "name": "OPOPO" }
+            ]
+          }
+        ]
+      },]
+  },
+  {
+    "name": "Show",
+    "children": [
+      { "name": "By List" },
+      { "name": "By Grid" }
+    ]
+  },
+  {
+    "name": "help",
+    "children": [
+      { "SearchMenu": { "isExtension": true } }
+    ]
+  }
+];
 
-export const Demo = () => html`
-      <${React.Fragment}>
-      <${TheHTML}/>
-      <${ControlBox}>
-        <p>Hello World!___</p>
-        <${StyledButton}>Click me!</${StyledButton}>
-        <!-- <${StyledButton}> <${ShareApple}/> </${StyledButton}> -->
-        <br/>
-        <br/>
-        <br/>
-        <${DropDownMenu} direction='horizontal' multipleOpen=${false} zIndex=${1}>
-          <${MenuItem}   name=${html`<span> File</span>`}> 
-            <${MenuItem} name="Open" />
-            <${MenuItem} name="New" />
-          </${MenuItem}/>
+export const Demo = () => (
+  <>
+    <TheHTML />
+    <ControlBox>
+      <p>Hello World!___</p>
+      <StyledButton>Click me!</StyledButton>
+      <br />
+      <br />
+      <br />
+      <DropDownMenu itemJson={myMenuItem} direction="horizontal" multipleOpen={false} zIndex={1}>
+      </DropDownMenu>
+      <br />
+      <br />
 
-          <${MenuItem} name='Edit'> 
-            <${MenuItem} name="Undo" onAction=${(a) => console.log('shortcut_', a)} shortCut=${'ctrl+z'}/>
-            <${MenuItem} name="Redo" />
-            <${MenuItem} name="Copy" />
-            <${MenuItem} name="Past" />
-            <${MenuItem} name="Truc" shortCut="ctrl+truc" />
-            <${MenuItem} name="Sub menu" ref=${(node) => console.log('1st node', node)}> 
-              <${MenuItem} name="Sub item A">
-                <${MenuItem} name="Copy" onAction=${() => console.log('sub copy')} />
-                <${MenuItem} name="Past" />
-                <${MenuItem} name="mais encore">
-                  <${MenuItem} name="Past" />
-                  <${MenuItem} name="Copy" />
-                </>
-              </${MenuItem}>
-              <${MenuItem} name="Sub item B"/>
-            </${MenuItem}>
-            <${MenuItem} name="Sub Next"> 
-              <${MenuItem} name="TRUC" onAction=${() => alert('Truc')}/>
-              <${MenuItem} name="OPOPO"/>
-            </${MenuItem}>
-          </${MenuItem}>
+      <CenteredSelect>
+        <div value="ex 1">ex1</div>
+        <div value="ex 2">ex2</div>
+        <div value="ex 3" selected>
+          ex3
+        </div>
+        <div value="ex 4">ex4</div>
+        <div value="ex 5">ex5</div>
+        <div value="ex 6">ex6</div>
+      </CenteredSelect>
+      <br />
+      <br />
 
-          <${MenuItem} name='Show'> 
-            <${MenuItem} name="By List" />
-            <${MenuItem} name="By Grid" />
-          </${MenuItem}>
+      <WindowDecoration title="App example" representedFilename={['file.example', 'Folder', 'Documents']} />
+      <StyledNoiseBackGround>
+        <SortableToolBar>
+          <ChalkEffectSVG />
+          <StyledToolBarGroup>
+            <FSF.ArrowAutofitUp />
+            <FSF.ArrowCurveUpLeft />
+            <FSF.ArrowUp />
+            <FSF.ArrowDown />
+            <FSF.PositionToFront />
+          </StyledToolBarGroup>
+          <FSF.PanelLeft />
+          <FSF.SelectObject />
+          <SaveAs />
+          <FSF.PanelBottom />
+          <FSF.MultiselectLtr />
+          <FSF.CopySelect />
+          <FSF.SelectAllOn />
+          <FSF.ArrowSquareDown />
+          <FSF.AddSquare />
+          <FSF.TextBold />
+          <FSF.TextItalic />
+          <FSF.TextUnderline />
+          <FSF.ImageAdd />
+          <FSF.ImageAltText />
+          <CenteredSelect>
+            <div value="ex 1">font 1</div>
+            <div value="ex 4" selected>ex4</div>
+            <div value="ex 5">ex5</div>
+            <div value="ex 6">ex6</div>
+          </CenteredSelect>
+        </SortableToolBar>
+      </StyledNoiseBackGround>
+      {/* 
+      <DndContext>
+        <WindowComponent height="200px" width="200px">
+          <div style={{ color: 'white' }}>OSUSHUHQSHUS dsoidqjsidsqd</div>
+        </WindowComponent>
+      </DndContext> */}
+    </ControlBox>
+  </>
+);
 
-          <${MenuItem} name='help'>
-            <${SearchMenu} isExtension/>
-          </${MenuItem}>
-
-        </${DropDownMenu}>
-        <br/>
-        <br/>
-
-        <${CenteredSelect}>
-          <div value="ex 1" >ex1</div>
-          <div value="ex 2" >ex2</div>
-          <div value="ex 3" selected>ex3</div>
-          <div value="ex 4" >ex4</div>
-          <div value="ex 5" >ex5</div>
-          <div value="ex 6" >ex6</div>
-        </${CenteredSelect}>
-        <br/>
-        <br/>
-
-        <${WindowDecoration} title="App example" represent  edFilename=${['file.example', 'Folder', 'Documents']}/>
-        <${StyledNoiseBackGround}>
-          <${SortableToolBar}>
-            <${ChalkEffectSVG}/>
-            <${StyledToolBarGroup}>
-            <${FSF.ArrowAutofitUp}/>
-                <${FSF.ArrowCurveUpLeft}/>
-                <${FSF.ArrowUp}/>
-                <${FSF.ArrowDown}/>
-                <${FSF.PositionToFront}/>
-              </${StyledToolBarGroup}>
-              <${FSF.PanelLeft}/>
-              <${FSF.SelectObject}/>
-              <${SaveAs}/>
-              <${FSF.PanelBottom}/>
-              <${FSF.MultiselectLtr}/>
-              <${FSF.CopySelect}/>
-              <${FSF.SelectAllOn}/>
-              <${FSF.ArrowSquareDown}/>
-              <${FSF.AddSquare}/>
-              <${FSF.TextBold}/>
-              <${FSF.TextItalic}/>
-              <${FSF.TextUnderline}/>
-              <${FSF.ImageAdd}/>
-              <${FSF.ImageAltText}/>
-              <${CenteredSelect}>
-              <div value="ex 1">font 1</div>
-              <div value="ex 4" >ex4</div>
-              </${CenteredSelect}>
-          </${SortableToolBar}>
-        </${StyledNoiseBackGround}>
-
-        <${DndContext}>
-          <${WindowComponent} height="200px" width="200px">
-            <div style=${{color:'white'}}>
-              OSUSHUHQSHUS
-              dsoidqjsidsqd
-            </div>
-          </${WindowComponent}>  
-        </${DndContext}>
-      </${ControlBox}>
-      <//>
-      `;
 
 register(Demo, 'lepto-demo', [], { shadow: false });
 
@@ -1040,15 +1160,15 @@ const StyledText = styled.div`
   color:${props => props.theme.fg};
 `
 
-function ThemeTest({jsontheme, children}) {
+function ThemeTest({ jsontheme, children }) {
   const defaultTheme = {
     fg: "palevioletred",
     bg: "white"
   };
-  console.log("jsontheme",jsontheme);
+  console.log("jsontheme", jsontheme);
   return (
-    <ThemeProvider theme={jsontheme ? JSON.parse(jsontheme): defaultTheme}>
-        {children}
+    <ThemeProvider theme={jsontheme ? JSON.parse(jsontheme) : defaultTheme}>
+      {children}
       <StyledText>
         <span>TETETET</span>
       </StyledText>
@@ -1056,7 +1176,7 @@ function ThemeTest({jsontheme, children}) {
   )
 }
 
-register(ThemeTest, 'lepto-theme', ["jsontheme","children"], { shadow: false });
+register(ThemeTest, 'lepto-theme', ["jsontheme", "children"], { shadow: false });
 register(StyledText, 'lepto-text', [], { shadow: false });
 
 
