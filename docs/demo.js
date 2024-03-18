@@ -15,7 +15,7 @@ import useOnclickOutside from 'react-cool-onclickoutside';
 
 
 import { ChevronUpDown } from "@styled-icons/fluentui-system-filled/ChevronUpDown";
-import { SaveAs } from "@styled-icons/heroicons-solid/SaveAs";
+// import { SaveAs } from "@styled-icons/heroicons-solid/SaveAs";
 import * as FSF from "@styled-icons/fluentui-system-filled";
 
 import { CSS as dndCSS } from '@dnd-kit/utilities';
@@ -556,8 +556,9 @@ export function CenteredSelect({ children, className }) {
       tabIndex='0'
       onKeyDown={onKeyDown}
       onMouseUp={e => { e.stopPropagation(); e.preventDefault(); return false }}
-      onTouchStart={() => toggleIsOpen(!isOpen)}
-      onMouseDown={(e) => { e.target.focus(); toggleIsOpen(!isOpen) }}
+      onTouchStart={() => toggleIsOpen(true)}
+      onMouseDown={(e) => {e.target.focus(); toggleIsOpen(true) }}
+      onContextMenu={e => { e.preventDefault(); toggleIsOpen(true); return false}}
       ref={centeredSelectRef}
       className={className}
     >
@@ -569,13 +570,15 @@ export function CenteredSelect({ children, className }) {
           minWidth={centeredSelectRef.current?.getBoundingClientRect().width}
           visibility={listVisibility}
           top={-Δy}
+          onContextMenu={e => { e.preventDefault(); return false}}
         >
           {children.map(c => React.cloneElement(c, {
             ref: c === selected ? node => { children[0].props.ref?.(node); setRef(node) } : null,
             onClick: e => onSelect(e, c),
             onMouseDown: e => onSelect(e, c),
             onTouchStart: e => onSelect(e, c),
-            onMouseUp: c !== selected ? e => onSelect(e, c) : null,
+            // onMouseUp: c !== selected ? e => {e.preventDefault(); onSelect(e, c); return false} : null,
+            onContextMenu: e => { e.preventDefault();onSelect(e, c); return false},
             selected: c === selected,
             ...c.props
           }, c.props.children))}
@@ -847,7 +850,7 @@ export const SlideOutPanel = ({ isOpen }) => {
   return (
     appear ? (
       <StyledSlideOutPanel isOpen={isOpen} key={`unique${!isOpen ? 'close' : ''}`}>
-        <SaveAs />
+        {/* <SaveAs /> */}
         <FSF.PanelBottom />
         <FSF.MultiselectLtr />
         <FSF.CopySelect />
@@ -995,7 +998,7 @@ function WindowComponent(props) {
 
   return (
     <Resizable handle={<StyledResizeHandle />} onResize={onResize} width={parseInt(width)} height={parseInt(height)}>
-      <div key="uniiiique" ref={setNodeRef} style={{ width, minHeight: height, position: "absolute", left: x, top: y, transform: dndCSS.Transform.toString(transform), backgroundColor: "white" }}>
+      <div key="uniiiique" ref={setNodeRef} style={{ width, minHeight: height, position: "absolute", left: x, top: y, transform: dndCSS.Transform.toString(transform), backgroundColor: "white",boxShadow:"rgba(0, 0, 0, 0.2) 5px 5px 8px 1px;" }}>
         <WindowDecoration title="Drag around" draggableRef={setActivatorNodeRef} listeners={listeners} representedFilename={['file.example', 'Folder', 'Documents']} />
         {children}
       </div>
@@ -1123,7 +1126,7 @@ export const Demo = () => (
           </StyledToolBarGroup>
           <FSF.PanelLeft />
           <FSF.SelectObject />
-          <SaveAs />
+          {/* <SaveAs /> */}
           <FSF.PanelBottom />
           <FSF.MultiselectLtr />
           <FSF.CopySelect />
