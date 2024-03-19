@@ -1037,7 +1037,7 @@ const myMenuItem = [
   {
     "name": "Edit",
     "children": [
-      { "name": "Undo", "onAction": "(a) => console.log('shortcut_', a)", "shortCut": "ctrl+z" },
+      { "name": "Undo", "onAction": (a) => console.log('shortcut_', a), "shortCut": "ctrl+z" },
       { "name": "Redo" },
       { "name": "Copy" },
       { "name": "Past" },
@@ -1085,6 +1085,15 @@ const myMenuItem = [
     ]
   }
 ];
+
+const toolbarButtonsElements = [
+  {name: "copy", icon: "<svg></svg>"},
+  {type: "spacing"},
+  {type: "group", elements: [
+    {name: "copy", icon: "<svg></svg>"},
+    {name: "copy", icon: "<svg></svg>"},
+  ]}
+] 
 
 export const Demo = () => (
   <>
