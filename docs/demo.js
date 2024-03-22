@@ -592,6 +592,7 @@ export function CenteredSelect({ children, className }) {
 export const StyledWindowDecoration = styled.div`
   display: flex;
   // width: 100%;
+  height: 24px;
   background: black;
   background: linear-gradient(to bottom, #595959 1%,#727272 3%,#474747 6%,#474747 12%,#111111 49%,#000000 92%,#000000 100%);
   color: white;
@@ -631,6 +632,12 @@ export const StyledWindowDecorationRight = styled.div`
   }
 
 `
+export const StyledWindowDecorationFillSeparator = styled.div`
+  width: 23%;
+  flex: 1;
+  height: 100%;
+  background-color: transparent;
+`
 
 export const StyledBlueMinimize = styled(FSF.ArrowMinimize)`
     stroke: url(#rgrad);
@@ -660,7 +667,9 @@ export const WindowDecoration = ({
     <StyledWindowDecoration>
       <StyledWindowDecorationLeft ref={draggableRef} {...listeners}>
       </StyledWindowDecorationLeft>
-
+      
+      <StyledWindowDecorationFillSeparator {...listeners} />
+      
       <StyledWindowDecorationCenter>
         {!representedFilename?.length ? title : null}
         {representedFilename?.length ? (
@@ -672,6 +681,8 @@ export const WindowDecoration = ({
         ) : null}
       </StyledWindowDecorationCenter>
 
+      <StyledWindowDecorationFillSeparator {...listeners} />
+
       <StyledWindowDecorationRight ref={draggableRef} {...listeners}>
         <StyledBlueMinimize />
         <StyledBlueMaximize />
@@ -680,6 +691,19 @@ export const WindowDecoration = ({
     </StyledWindowDecoration>
   );
 };
+
+<div>
+  <div class="left">
+  </div>
+  <div class="separator">
+  </div>
+  <div class="title">
+  </div>
+  <div class="separator">
+  </div>
+  <div class="right">
+  </div>
+</div>
 
 export const StyledNoiseBackGround = styled.div`
   background: black;
